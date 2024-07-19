@@ -1,63 +1,113 @@
-﻿using MediatR;
+﻿using System.Net;
+using MediatR;
 using MediatR.Pipeline;
 using Microsoft.EntityFrameworkCore;
 using StargateAPI.Business.Data;
 using StargateAPI.Controllers;
 
-namespace StargateAPI.Business.Commands
+namespace StargateAPI.Business.Commands;
+
+/// <summary>
+/// The class CreatePerson represents a request to create a person with properties for the
+/// person's name.
+/// </summary>
+public class CreatePerson : IRequest<CreatePersonResult>
 {
-    public class CreatePerson : IRequest<CreatePersonResult>
+    /// <summary>Represents the name of the person to create.</summary>
+    public required string Name { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Represents the result of creating a person, extending the base response class.
+/// </summary>
+public class CreatePersonResult : BaseResponse
+{
+    /// <summary>Represents the ID of the created person.</summary>
+    public int Id { get; set; }
+}
+
+/// <summary>
+/// The CreatePersonPreProcessor class names sure a person with the current name does not already exists in
+/// the database before processing the request.
+/// </summary>
+public class CreatePersonPreProcessor : IRequestPreProcessor<CreatePerson>
+{
+    /// <summary>Represents the context for interacting with the Stargate database.</summary>
+    private readonly StargateContext _context;
+
+    /// <summary>Initializes a new instance of the CreatePersonPreProcessor class.</summary>
+    /// <param name="context">The StargateContext used for creating a person.</param>
+    public CreatePersonPreProcessor(StargateContext context)
     {
-        public required string Name { get; set; } = string.Empty;
+        _context = context;
     }
 
-    public class CreatePersonPreProcessor : IRequestPreProcessor<CreatePerson>
+    /// <summary>
+    /// Processes an create request for a person.
+    /// </summary>
+    /// <param name="request">The create request containing the name of the person.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    /// <exception cref="BadHttpRequestException">Thrown when a person is found matching the name in the request.</exception>
+    public Task Process(CreatePerson request, CancellationToken cancellationToken)
     {
-        private readonly StargateContext _context;
-        public CreatePersonPreProcessor(StargateContext context)
+        // Make sure there is not a person in the database with a matching name
+        Person? person = _context.People.AsNoTracking().FirstOrDefault(x => x.Name.Equals(request.Name, StringComparison.OrdinalIgnoreCase));
+        if (person is not null)
         {
-            _context = context;
+            throw new BadHttpRequestException(
+                $"A person already exists with name matching '{request.Name}'",
+                (int)HttpStatusCode.BadRequest
+            );
         }
-        public Task Process(CreatePerson request, CancellationToken cancellationToken)
-        {
-            var person = _context.People.AsNoTracking().FirstOrDefault(z => z.Name == request.Name);
 
-            if (person is not null) throw new BadHttpRequestException("Bad Request");
+        return Task.CompletedTask;
+    }
+}
 
-            return Task.CompletedTask;
-        }
+/// <summary>
+/// Handles the request to create a person's information.
+/// </summary>
+/// <typeparam name="CreatePerson">The request type to create a person.</typeparam>
+/// <typeparam name="CreatePersonResult">The result type after creating a person.</typeparam>
+/// <remarks>
+/// This class implements the IRequestHandler interface to process the CreatePerson request and return an CreatePersonResult.
+/// </remarks>
+/// <param name="context">The StargateContext for database operations.</param>
+/// <returns>An CreatePersonResult object with the created person's ID.</returns>
+public class CreatePersonHandler : IRequestHandler<CreatePerson, CreatePersonResult>
+{
+    /// <summary>Represents the context for interacting with the Stargate database.</summary>
+    private readonly StargateContext _context;
+
+    /// <summary>Initializes a new instance of the CreatePersonHandler class.</summary>
+    /// <param name="context">The StargateContext used for creating a person.</param>
+    public CreatePersonHandler(StargateContext context)
+    {
+        _context = context;
     }
 
-    public class CreatePersonHandler : IRequestHandler<CreatePerson, CreatePersonResult>
+    /// <summary>
+    /// Handles the creating of a person.
+    /// </summary>
+    /// <param name="request">The request containing the name of the person.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>An CreatePersonResult object containing the created person's ID.</returns>
+    public async Task<CreatePersonResult> Handle(CreatePerson request, CancellationToken cancellationToken)
     {
-        private readonly StargateContext _context;
-
-        public CreatePersonHandler(StargateContext context)
+        // Create the new person
+        Person newPerson = new()
         {
-            _context = context;
-        }
-        public async Task<CreatePersonResult> Handle(CreatePerson request, CancellationToken cancellationToken)
+            Name = request.Name
+        };
+
+        // Add the new person to the database
+        _ = await _context.People.AddAsync(newPerson, cancellationToken);
+        _ = await _context.SaveChangesAsync(cancellationToken);
+
+        return new CreatePersonResult()
         {
-
-                var newPerson = new Person()
-                {
-                   Name = request.Name
-                };
-
-                await _context.People.AddAsync(newPerson);
-
-                await _context.SaveChangesAsync();
-
-                return new CreatePersonResult()
-                {
-                    Id = newPerson.Id
-                };
-          
-        }
-    }
-
-    public class CreatePersonResult : BaseResponse
-    {
-        public int Id { get; set; }
+            Id = newPerson.Id
+        };
     }
 }
