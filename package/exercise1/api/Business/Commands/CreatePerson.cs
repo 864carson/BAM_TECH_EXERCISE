@@ -1,8 +1,10 @@
-﻿using System.Net;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
+﻿using MediatR;
+using MediatR.Pipeline;
 using StargateAPI.Business.Data;
+using StargateAPI.Business.Validators;
 using StargateAPI.Controllers;
+using StargateAPI.Repositories;
+using System.Net;
 
 namespace StargateAPI.Business.Commands;
 
@@ -29,11 +31,17 @@ public class CreatePersonResult : BaseResponse
 /// The CreatePersonPreProcessor class names sure a person with the current name does not already exists in
 /// the database before processing the request.
 /// </summary>
-public class CreatePersonPreProcessor : BasePreProcessor<CreatePerson, CreatePersonResult>
+public class CreatePersonPreProcessor : IRequestPreProcessor<CreatePerson>
 {
+    /// <summary>Represents the person repository for interacting with the Stargate database.</summary>
+    private readonly IStargateRepository _stargateRepository;
+
     /// <summary>Initializes a new instance of the CreatePersonPreProcessor class.</summary>
     /// <param name="context">The StargateContext used for creating a person.</param>
-    public CreatePersonPreProcessor(StargateContext context) : base(context) { }
+    public CreatePersonPreProcessor(IStargateRepository astronautRepository)
+    {
+        _stargateRepository = astronautRepository ?? throw new ArgumentNullException(nameof(astronautRepository));
+    }
 
     /// <summary>
     /// Processes an create request for a person.
@@ -44,12 +52,17 @@ public class CreatePersonPreProcessor : BasePreProcessor<CreatePerson, CreatePer
     /// <exception cref="BadHttpRequestException">
     /// Thrown when a person is found matching the name in the request.
     /// </exception>
-    public override Task Process(CreatePerson request, CancellationToken cancellationToken)
+    public Task Process(CreatePerson request, CancellationToken cancellationToken)
     {
+        if (!CreatePersonRequestValidator.IsValid(request))
+        {
+            throw new ArgumentException("A valid request object is required.", nameof(request));
+        }
+
         // Make sure there is not a person in the database with a matching name
-        Person? person = _context.People
-            .AsNoTracking()
-            .FirstOrDefault(x => x.Name.ToUpper() == request.Name.ToUpper());
+        Person? person = _stargateRepository.GetUntrackedAstronautByNameAsync(
+            request.Name,
+            cancellationToken).Result;
         if (person is not null)
         {
             throw new BadHttpRequestException(
@@ -73,11 +86,17 @@ public class CreatePersonPreProcessor : BasePreProcessor<CreatePerson, CreatePer
 /// </remarks>
 /// <param name="context">The StargateContext for database operations.</param>
 /// <returns>An CreatePersonResult object with the created person's ID.</returns>
-public class CreatePersonHandler : BaseCommandHandler<CreatePerson, CreatePersonResult>
+public class CreatePersonHandler : IRequestHandler<CreatePerson, CreatePersonResult>
 {
-     /// <summary>Initializes a new instance of the CreatePersonHandler class.</summary>
+    /// <summary>Represents the person repository for interacting with the Stargate database.</summary>
+    private readonly IStargateRepository _stargateRepository;
+
+    /// <summary>Initializes a new instance of the CreatePersonHandler class.</summary>
     /// <param name="context">The StargateContext used for creating a person.</param>
-    public CreatePersonHandler(StargateContext context) : base(context) { }
+    public CreatePersonHandler(IStargateRepository astronautRepository)
+    {
+        _stargateRepository = astronautRepository ?? throw new ArgumentNullException(nameof(astronautRepository));
+    }
 
     /// <summary>
     /// Handles the creating of a person.
@@ -85,8 +104,13 @@ public class CreatePersonHandler : BaseCommandHandler<CreatePerson, CreatePerson
     /// <param name="request">The request containing the name of the person.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>An CreatePersonResult object containing the created person's ID.</returns>
-    public async override Task<CreatePersonResult> Handle(CreatePerson request, CancellationToken cancellationToken)
+    public async Task<CreatePersonResult> Handle(CreatePerson request, CancellationToken cancellationToken)
     {
+        if (!CreatePersonRequestValidator.IsValid(request))
+        {
+            throw new ArgumentException("A valid request object is required.", nameof(request));
+        }
+
         // Create the new person
         Person newPerson = new()
         {
@@ -94,8 +118,7 @@ public class CreatePersonHandler : BaseCommandHandler<CreatePerson, CreatePerson
         };
 
         // Add the new person to the database
-        _ = await _context.People.AddAsync(newPerson, cancellationToken);
-        _ = await _context.SaveChangesAsync(cancellationToken);
+        _ = await _stargateRepository.AddAstronautAsync(newPerson, cancellationToken);
 
         return new CreatePersonResult()
         {

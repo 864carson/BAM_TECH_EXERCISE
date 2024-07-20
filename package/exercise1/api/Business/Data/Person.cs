@@ -13,8 +13,7 @@ public class Person
 
     public virtual AstronautDetail? AstronautDetail { get; set; }
 
-    public virtual ICollection<AstronautDuty> AstronautDuties { get; set; } = new HashSet<AstronautDuty>();
-
+    public virtual ICollection<AstronautDuty> AstronautDuties { get; set; } = [];
 }
 
 public class PersonConfiguration : IEntityTypeConfiguration<Person>

@@ -2,12 +2,15 @@ using Microsoft.EntityFrameworkCore;
 using StargateAPI;
 using StargateAPI.Business.Commands;
 using StargateAPI.Business.Data;
+using StargateAPI.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 AppConfig? preciseConfig = builder.Configuration.GetSection("AppConfig").Get<AppConfig>();
 builder.Services.AddSingleton<AppConfig>();
+
+builder.Services.AddTransient<IStargateRepository, StargateRepository>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
