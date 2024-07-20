@@ -1,5 +1,4 @@
 ﻿using MediatR;
-using MediatR.Pipeline;
 using Microsoft.EntityFrameworkCore;
 using StargateAPI.Business.Data;
 using StargateAPI.Controllers;
@@ -33,17 +32,11 @@ public class UpdatePersonResult : BaseResponse
 /// The UpdatePersonPreProcessor class names sure a person with the current name already exists in
 /// the database before processing the request.
 /// </summary>
-public class UpdatePersonPreProcessor : IRequestPreProcessor<UpdatePerson>
+public class UpdatePersonPreProcessor : BasePreProcessor<UpdatePerson, UpdatePersonResult>
 {
-    /// <summary>Represents the context for interacting with the Stargate database.</summary>
-    private readonly StargateContext _context;
-
     /// <summary>Initializes a new instance of the UpdatePersonPreProcessor class.</summary>
     /// <param name="context">The StargateContext used for updating a person.</param>
-    public UpdatePersonPreProcessor(StargateContext context)
-    {
-        _context = context;
-    }
+    public UpdatePersonPreProcessor(StargateContext context) : base(context) { }
 
     /// <summary>
     /// Processes an update request for a person.
@@ -51,11 +44,15 @@ public class UpdatePersonPreProcessor : IRequestPreProcessor<UpdatePerson>
     /// <param name="request">The update request containing the new and current names of the person.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    /// <exception cref="BadHttpRequestException">Thrown when no person is found matching the current name in the request.</exception>
-    public Task Process(UpdatePerson request, CancellationToken cancellationToken)
+    /// <exception cref="BadHttpRequestException">
+    /// Thrown when no person is found matching the current name in the request.
+    /// /// </exception>
+    public override Task Process(UpdatePerson request, CancellationToken cancellationToken)
     {
         // Make sure there is a person in the database with a matching name
-        Person? person = _context.People.AsNoTracking().FirstOrDefault(x => x.Name.Equals(request.CurrentName, StringComparison.OrdinalIgnoreCase));
+        Person? person = _context.People
+            .AsNoTracking()
+            .FirstOrDefault(x => x.Name.ToUpper() == request.CurrentName.ToUpper());
         if (person is null)
         {
             throw new BadHttpRequestException(
@@ -74,21 +71,16 @@ public class UpdatePersonPreProcessor : IRequestPreProcessor<UpdatePerson>
 /// <typeparam name="UpdatePerson">The request type to update a person.</typeparam>
 /// <typeparam name="UpdatePersonResult">The result type after updating a person.</typeparam>
 /// <remarks>
-/// This class implements the IRequestHandler interface to process the UpdatePerson request and return an UpdatePersonResult.
+/// This class implements the IRequestHandler interface to process the UpdatePerson request
+/// and return an UpdatePersonResult.
 /// </remarks>
 /// <param name="context">The StargateContext for database operations.</param>
 /// <returns>An UpdatePersonResult object with the updated person's ID.</returns>
-public class UpdatePersonHandler : IRequestHandler<UpdatePerson, UpdatePersonResult>
+public class UpdatePersonHandler : BaseCommandHandler<UpdatePerson, UpdatePersonResult>
 {
-    /// <summary>Represents the context for interacting with the Stargate database.</summary>
-    private readonly StargateContext _context;
-
     /// <summary>Initializes a new instance of the UpdatePersonHandler class.</summary>
     /// <param name="context">The StargateContext used for updating a person.</param>
-    public UpdatePersonHandler(StargateContext context)
-    {
-        _context = context;
-    }
+    public UpdatePersonHandler(StargateContext context) : base(context) { }
 
     /// <summary>
     /// Handles the updating of a person's name.
@@ -96,10 +88,11 @@ public class UpdatePersonHandler : IRequestHandler<UpdatePerson, UpdatePersonRes
     /// <param name="request">The request containing the current and new names of the person.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>An UpdatePersonResult object containing the updated person's ID.</returns>
-    public async Task<UpdatePersonResult> Handle(UpdatePerson request, CancellationToken cancellationToken)
+    public async override Task<UpdatePersonResult> Handle(UpdatePerson request, CancellationToken cancellationToken)
     {
         // We know there is a matching person record, because we made it through the preprocessor
-        Person existingPerson = await _context.People.FirstAsync(x => x.Name.Equals(request.CurrentName, StringComparison.OrdinalIgnoreCase));
+        Person existingPerson = await _context.People
+            .FirstAsync(x => x.Name.ToUpper() == request.CurrentName.ToUpper());
 
         // Update the person's name in the database
         existingPerson.Name = request.NewName;

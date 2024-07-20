@@ -1,5 +1,5 @@
-﻿using Dapper;
-using MediatR;
+﻿using MediatR;
+using Microsoft.EntityFrameworkCore;
 using StargateAPI.Business.Data;
 using StargateAPI.Business.Dtos;
 using StargateAPI.Controllers;
@@ -21,17 +21,11 @@ public class GetPeopleResult : BaseResponse
     public List<PersonAstronaut> People { get; set; } = [];
 }
 
-public class GetPeopleHandler : IRequestHandler<GetPeople, GetPeopleResult>
+public class GetPeopleHandler : BaseQueryHandler<GetPeople, GetPeopleResult>
 {
-    /// <summary>Represents the context for interacting with the Stargate database.</summary>
-    public readonly StargateContext _context;
-
     /// <summary>Initializes a new instance of the GetPeopleHandler class.</summary>
     /// <param name="context">The StargateContext used for retrieving all people.</param>
-    public GetPeopleHandler(StargateContext context)
-    {
-        _context = context;
-    }
+    public GetPeopleHandler(StargateContext context) : base(context) { }
 
     /// <summary>
     /// Handles the request to retrieve all people.
@@ -39,22 +33,23 @@ public class GetPeopleHandler : IRequestHandler<GetPeople, GetPeopleResult>
     /// <param name="request">The empty request.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task representing the asynchronous operation that returns the result of retrieving all people.</returns>
-    public async Task<GetPeopleResult> Handle(GetPeople request, CancellationToken cancellationToken)
+    public async override Task<GetPeopleResult> Handle(GetPeople request, CancellationToken cancellationToken)
     {
-        GetPeopleResult result = new();
+        GetPeopleResult result = new()
+        {
+            People = await (from p in _context.People
+                            from ad in _context.AstronautDetails.Where(x => x.PersonId == p.Id).DefaultIfEmpty()
+                            select new PersonAstronaut
+                            {
+                                PersonId = p.Id,
+                                Name = p.Name,
+                                CurrentRank = ad.CurrentRank,
+                                CurrentDutyTitle = ad.CurrentDutyTitle,
+                                CareerStartDate = ad.CareerStartDate,
+                                CareerEndDate = ad.CareerEndDate
+                            }).ToListAsync(cancellationToken: cancellationToken)
+        };
 
-        string query = @$"
-            SELECT
-                a.Id as PersonId
-                , a.Name
-                , b.CurrentRank
-                , b.CurrentDutyTitle
-                , b.CareerStartDate
-                , b.CareerEndDate
-            FROM [Person] a
-            LEFT JOIN [AstronautDetail] b on b.PersonId = a.Id";
-
-        result.People = (await _context.Connection.QueryAsync<PersonAstronaut>(query)).ToList();
         return result;
     }
 }

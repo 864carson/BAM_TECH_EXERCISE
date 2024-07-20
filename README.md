@@ -1,5 +1,6 @@
 # Immediate Changes
 - Added a .gitignore file and ignored the bin and obj folders
+- Removed Dapper
 
 # Impactful Changes
 - Person name matching was made case insensitive

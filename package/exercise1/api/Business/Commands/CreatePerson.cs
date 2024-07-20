@@ -1,6 +1,5 @@
 ﻿using System.Net;
 using MediatR;
-using MediatR.Pipeline;
 using Microsoft.EntityFrameworkCore;
 using StargateAPI.Business.Data;
 using StargateAPI.Controllers;
@@ -30,17 +29,11 @@ public class CreatePersonResult : BaseResponse
 /// The CreatePersonPreProcessor class names sure a person with the current name does not already exists in
 /// the database before processing the request.
 /// </summary>
-public class CreatePersonPreProcessor : IRequestPreProcessor<CreatePerson>
+public class CreatePersonPreProcessor : BasePreProcessor<CreatePerson, CreatePersonResult>
 {
-    /// <summary>Represents the context for interacting with the Stargate database.</summary>
-    private readonly StargateContext _context;
-
     /// <summary>Initializes a new instance of the CreatePersonPreProcessor class.</summary>
     /// <param name="context">The StargateContext used for creating a person.</param>
-    public CreatePersonPreProcessor(StargateContext context)
-    {
-        _context = context;
-    }
+    public CreatePersonPreProcessor(StargateContext context) : base(context) { }
 
     /// <summary>
     /// Processes an create request for a person.
@@ -48,11 +41,15 @@ public class CreatePersonPreProcessor : IRequestPreProcessor<CreatePerson>
     /// <param name="request">The create request containing the name of the person.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    /// <exception cref="BadHttpRequestException">Thrown when a person is found matching the name in the request.</exception>
-    public Task Process(CreatePerson request, CancellationToken cancellationToken)
+    /// <exception cref="BadHttpRequestException">
+    /// Thrown when a person is found matching the name in the request.
+    /// </exception>
+    public override Task Process(CreatePerson request, CancellationToken cancellationToken)
     {
         // Make sure there is not a person in the database with a matching name
-        Person? person = _context.People.AsNoTracking().FirstOrDefault(x => x.Name.Equals(request.Name, StringComparison.OrdinalIgnoreCase));
+        Person? person = _context.People
+            .AsNoTracking()
+            .FirstOrDefault(x => x.Name.ToUpper() == request.Name.ToUpper());
         if (person is not null)
         {
             throw new BadHttpRequestException(
@@ -71,21 +68,16 @@ public class CreatePersonPreProcessor : IRequestPreProcessor<CreatePerson>
 /// <typeparam name="CreatePerson">The request type to create a person.</typeparam>
 /// <typeparam name="CreatePersonResult">The result type after creating a person.</typeparam>
 /// <remarks>
-/// This class implements the IRequestHandler interface to process the CreatePerson request and return an CreatePersonResult.
+/// This class implements the IRequestHandler interface to process the CreatePerson request
+/// and return an CreatePersonResult.
 /// </remarks>
 /// <param name="context">The StargateContext for database operations.</param>
 /// <returns>An CreatePersonResult object with the created person's ID.</returns>
-public class CreatePersonHandler : IRequestHandler<CreatePerson, CreatePersonResult>
+public class CreatePersonHandler : BaseCommandHandler<CreatePerson, CreatePersonResult>
 {
-    /// <summary>Represents the context for interacting with the Stargate database.</summary>
-    private readonly StargateContext _context;
-
-    /// <summary>Initializes a new instance of the CreatePersonHandler class.</summary>
+     /// <summary>Initializes a new instance of the CreatePersonHandler class.</summary>
     /// <param name="context">The StargateContext used for creating a person.</param>
-    public CreatePersonHandler(StargateContext context)
-    {
-        _context = context;
-    }
+    public CreatePersonHandler(StargateContext context) : base(context) { }
 
     /// <summary>
     /// Handles the creating of a person.
@@ -93,7 +85,7 @@ public class CreatePersonHandler : IRequestHandler<CreatePerson, CreatePersonRes
     /// <param name="request">The request containing the name of the person.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>An CreatePersonResult object containing the created person's ID.</returns>
-    public async Task<CreatePersonResult> Handle(CreatePerson request, CancellationToken cancellationToken)
+    public async override Task<CreatePersonResult> Handle(CreatePerson request, CancellationToken cancellationToken)
     {
         // Create the new person
         Person newPerson = new()

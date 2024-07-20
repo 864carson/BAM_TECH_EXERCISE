@@ -6,7 +6,6 @@ using System.Net;
 
 namespace StargateAPI.Controllers;
 
-
 [ApiController]
 [Route("[controller]")]
 /// <summary>
