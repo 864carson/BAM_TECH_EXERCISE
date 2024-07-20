@@ -17,6 +17,13 @@ public class BasePreProcessor<TRequest, TResponse> : IRequestPreProcessor<TReque
         _context = context;
     }
 
+    /// <summary>
+    /// Processes a request asynchronously.
+    /// </summary>
+    /// <param name="request">The request to be processed.</param>
+    /// <param name="cancellationToken">A cancellation token to cancel the operation.</param>
+    /// <returns>A task representing the asynchronous operation with the response.</returns>
+    /// <exception cref="NotImplementedException">Thrown to indicate that the method is not implemented.</exception>
     public virtual Task Process(TRequest request, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();

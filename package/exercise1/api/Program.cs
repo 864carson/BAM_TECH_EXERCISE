@@ -7,7 +7,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 AppConfig? preciseConfig = builder.Configuration.GetSection("AppConfig").Get<AppConfig>();
-// builder.Configuration.GetSection("myconfig:root:inner").Bind(preciseConfig);
 builder.Services.AddSingleton<AppConfig>();
 
 builder.Services.AddControllers();
