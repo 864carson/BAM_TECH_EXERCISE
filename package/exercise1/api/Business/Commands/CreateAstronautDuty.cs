@@ -79,6 +79,8 @@ public class CreateAstronautDutyPreProcessor : IRequestPreProcessor<CreateAstron
         Person? person = _stargateRepository
             .GetUntrackedAstronautByNameAsync(request.Name, cancellationToken)
             .Result;
+
+        // Rule #1) A Person is uniquely identified by their name.
         if (person is null)
         {
             throw new BadHttpRequestException(
@@ -145,6 +147,8 @@ public class CreateAstronautDutyHandler : IRequestHandler<CreateAstronautDuty, C
         // We know there is a matching person record, because we made it through the preprocessor
         Person? person = await _stargateRepository
             .GetUntrackedAstronautByNameAsync(request.Name, cancellationToken);
+
+        // Rule #1) A Person is uniquely identified by their name.
         if (person is null)
         {
             return new CreateAstronautDutyResult()

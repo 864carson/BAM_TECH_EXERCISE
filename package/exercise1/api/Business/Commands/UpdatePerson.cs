@@ -63,6 +63,7 @@ public class UpdatePersonPreProcessor : IRequestPreProcessor<UpdatePerson>
         }
 
         // Make sure there is a person in the database with a matching name
+        // Rule #1) A Person is uniquely identified by their name.
         Person? person = _stargateRepository.GetUntrackedAstronautByNameAsync(
             request.CurrentName,
             cancellationToken).Result;
@@ -118,6 +119,8 @@ public class UpdatePersonHandler : IRequestHandler<UpdatePerson, UpdatePersonRes
         Person? existingPerson = (await _stargateRepository.GetAstronautByNameAsync(
             request.CurrentName,
             cancellationToken));
+
+        // Rule #1) A Person is uniquely identified by their name.
         if (existingPerson is null)
         {
             return new UpdatePersonResult
