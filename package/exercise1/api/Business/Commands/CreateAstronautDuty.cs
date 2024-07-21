@@ -90,6 +90,7 @@ public class CreateAstronautDutyPreProcessor : IRequestPreProcessor<CreateAstron
 
         // Verify no duty for this astronaut matches the specified title and start date.
         // As the logic is written below, this SHOULD ALWAYS BE NULL due to the start date being a timestamp.
+        // Rule #3) A Person will only ever hold one current Astronaut Duty Title, Start Date, and Rank at a time.
         AstronautDuty? verifyNoPreviousDuty = _stargateRepository.GetAstronautDutyByIdTitleStartDateAsync(
             person.Id,
             request.DutyTitle,
@@ -198,6 +199,7 @@ public class CreateAstronautDutyHandler : IRequestHandler<CreateAstronautDuty, C
             .GetMostRecentAstronautDutyByAstronautIdAsync(person.Id, cancellationToken);
         if (astronautDuty is not null)
         {
+            // Rule #3) A Person will only ever hold one current Astronaut Duty Title, Start Date, and Rank at a time.
             astronautDuty.DutyEndDate = request.DutyStartDate.AddDays(-1).Date;
 
             // Update the astronaut's duty record end date
@@ -212,7 +214,7 @@ public class CreateAstronautDutyHandler : IRequestHandler<CreateAstronautDuty, C
             Rank = request.Rank,
             DutyTitle = request.DutyTitle,
             DutyStartDate = request.DutyStartDate.Date,
-            DutyEndDate = null
+            DutyEndDate = (request.DutyTitle == _config.RetiredDutyTitle) ? request.DutyStartDate.AddDays(-1).Date : null
         };
         _ = await _stargateRepository
             .AddAstronautDutyAsync(newAstronautDuty, cancellationToken);
