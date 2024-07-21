@@ -9,6 +9,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "exercise1", "exercise1", "{
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StargateAPI", "package\exercise1\api\StargateAPI.csproj", "{77F099B6-FF7A-4364-BE8B-2B3DA0B564FF}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "apiTests", "package\exercise1\apiTests\apiTests.csproj", "{85BCF59F-E0D4-4409-BA55-3B889F0E379F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1BCABE6E-2B92-444E-85C9-D625BAABB007}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		README.md = README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,6 +27,10 @@ Global
 		{77F099B6-FF7A-4364-BE8B-2B3DA0B564FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{77F099B6-FF7A-4364-BE8B-2B3DA0B564FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{77F099B6-FF7A-4364-BE8B-2B3DA0B564FF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{85BCF59F-E0D4-4409-BA55-3B889F0E379F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{85BCF59F-E0D4-4409-BA55-3B889F0E379F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{85BCF59F-E0D4-4409-BA55-3B889F0E379F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{85BCF59F-E0D4-4409-BA55-3B889F0E379F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -26,6 +38,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{F993CD8D-6ACC-4FD0-962E-3D3E0933076D} = {5A0EE25A-E478-45AA-B209-E1B746E4C911}
 		{77F099B6-FF7A-4364-BE8B-2B3DA0B564FF} = {F993CD8D-6ACC-4FD0-962E-3D3E0933076D}
+		{85BCF59F-E0D4-4409-BA55-3B889F0E379F} = {F993CD8D-6ACC-4FD0-962E-3D3E0933076D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {80755566-59E1-477F-B86D-018C16932C4C}

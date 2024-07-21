@@ -1,8 +1,8 @@
 ﻿using MediatR;
-using Microsoft.EntityFrameworkCore;
-using StargateAPI.Business.Data;
 using StargateAPI.Business.Dtos;
+using StargateAPI.Business.Validators;
 using StargateAPI.Controllers;
+using StargateAPI.Repositories;
 using System.Net;
 
 namespace StargateAPI.Business.Queries;
@@ -30,36 +30,41 @@ public class GetPersonByNameResult : BaseResponse
 /// </summary>
 /// <typeparam name="GetPersonByName">The request type to get a person by name.</typeparam>
 /// <typeparam name="GetPersonByNameResult">The result type of getting a person by name.</typeparam>
-public class GetPersonByNameHandler : BaseQueryHandler<GetPersonByName, GetPersonByNameResult>
+public class GetPersonByNameHandler : IRequestHandler<GetPersonByName, GetPersonByNameResult>
 {
+    /// <summary>Represents the person repository for interacting with the Stargate database.</summary>
+    private readonly IStargateRepository _personRepository;
+
     /// <summary>Initializes a new instance of the GetPersonByNameHandler class.</summary>
     /// <param name="context">The StargateContext used for retrieving a person.</param>
-    public GetPersonByNameHandler(StargateContext context) : base(context) { }
+    public GetPersonByNameHandler(IStargateRepository personRepo)
+    {
+        _personRepository = personRepo ?? throw new ArgumentNullException(nameof(personRepo));
+    }
 
     /// <summary>
     /// Handles the request to retrieve a person by name.
     /// </summary>
     /// <param name="request">The request containing the name of the person to retrieve.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task representing the asynchronous operation that returns the result of retrieving a person by name.</returns>
-    public async override Task<GetPersonByNameResult> Handle(GetPersonByName request, CancellationToken cancellationToken)
+    /// <returns>
+    /// A task representing the asynchronous operation that returns the result of retrieving a person by name.
+    /// </returns>
+    public async Task<GetPersonByNameResult> Handle(
+        GetPersonByName request,
+        CancellationToken cancellationToken)
     {
+        if (!GetPersonByNameRequestValidator.IsValid(request))
+        {
+            throw new ArgumentException("A valid request object is required.", nameof(request));
+        }
+
         GetPersonByNameResult result = new()
         {
-            Person = await (from p in _context.People
-                            where p.Name.Equals(request.Name, StringComparison.OrdinalIgnoreCase)
-                            from ad in _context.AstronautDetails.Where(x => x.PersonId == p.Id).DefaultIfEmpty()
-                            select new PersonAstronaut
-                            {
-                                PersonId = p.Id,
-                                Name = p.Name,
-                                CurrentRank = ad.CurrentRank,
-                                CurrentDutyTitle = ad.CurrentDutyTitle,
-                                CareerStartDate = ad.CareerStartDate,
-                                CareerEndDate = ad.CareerEndDate
-                            }).FirstOrDefaultAsync(cancellationToken)
+            Person = await _personRepository.GetAstronautDetailsByNameAsync(
+                request.Name,
+                cancellationToken)
         };
-
         if (result.Person is null)
         {
             result.Message = $"No person was found matching name '{request.Name}'";
