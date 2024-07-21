@@ -186,6 +186,7 @@ public class CreateAstronautDutyHandler : IRequestHandler<CreateAstronautDuty, C
         {
             if (request.DutyTitle == _config.RetiredDutyTitle)
             {
+                // Rule #7) A Person's Career End Date is one day before the Retired Duty Start Date.
                 astronautDetail.CareerEndDate = request.DutyStartDate.AddDays(-1).Date;
             }
 
@@ -208,6 +209,8 @@ public class CreateAstronautDutyHandler : IRequestHandler<CreateAstronautDuty, C
         }
 
         // Create and add the new duty record to the database
+        // Rule #4) A Person's Current Duty will not have a Duty End Date.
+        // Rule #7) A Person's Career End Date is one day before the Retired Duty Start Date.
         AstronautDuty newAstronautDuty = new()
         {
             PersonId = person.Id,
