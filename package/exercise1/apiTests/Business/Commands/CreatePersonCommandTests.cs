@@ -38,7 +38,11 @@ public class CreatePersonCommandTests
     {
         _stargateRepositoryMock
             .Setup(x => x.GetUntrackedAstronautByNameAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Person)null);
+            .ReturnsAsync(new Person
+            {
+                Id = 1,
+                Name = "Tester"
+            });
 
         CreatePerson request = new() { Name = "Its Me" };
         Assert.ThrowsAsync<BadHttpRequestException>(() => _preprocessor.Process(request, CancellationToken.None));
@@ -49,11 +53,7 @@ public class CreatePersonCommandTests
     {
         _stargateRepositoryMock
             .Setup(x => x.GetUntrackedAstronautByNameAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new Person
-            {
-                Id = 1,
-                Name = "Tester"
-            });
+            .ReturnsAsync((Person)null);
 
         CreatePerson request = new() { Name = "Its Me" };
         Task result = _preprocessor.Process(request, CancellationToken.None);
@@ -83,7 +83,7 @@ public class CreatePersonCommandTests
         CreatePersonResult result = await _handler.Handle(request, CancellationToken.None);
 
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Id, Is.EqualTo(1));
+        Assert.That(result.Id, Is.EqualTo(0));
     }
 
     #endregion

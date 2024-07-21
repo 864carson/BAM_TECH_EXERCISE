@@ -6,8 +6,12 @@
 
 ## Impactful Changes
 - Person name matching was made case insensitive
+
+## Unit Test Coverage
+![Code Coverage](screenshots/codeCoverage.png)
+
 <br/><br/>
 
 ## Compiler Warnings
 I got the following compiler warnings on the very first build:
-![alt text](screenshots/initialBuildWarnings.png)
+![Initial Build Warning](screenshots/initialBuildWarnings.png)

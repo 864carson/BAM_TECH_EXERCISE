@@ -1,9 +1,7 @@
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using StargateAPI.Business.Commands;
 using StargateAPI.Business.Data;
 using StargateAPI.Business.Dtos;
-using System;
 
 namespace StargateAPI.Repositories;
 
@@ -26,13 +24,23 @@ public interface IStargateRepository
         int personId,
         CancellationToken cancellationToken = default);
 
+    Task<AstronautDuty?> GetAstronautDutyByIdTitleStartDateAsync(
+        int id,
+        string title,
+        DateTime startDate,
+        CancellationToken cancellationToken = default);
+
+    Task<AstronautDuty?> GetMostRecentAstronautDutyByAstronautIdAsync(
+        int id,
+        CancellationToken cancellationToken = default);
+
     Task<Person?> GetUntrackedAstronautByNameAsync(
         string name,
         CancellationToken cancellationToken = default);
 
     Task<AstronautDetail?> GetAstronautDetailByIdAsync(
         int id,
-        CancellationToken cancellationToken= default);
+        CancellationToken cancellationToken = default);
 
     #endregion
 
@@ -46,6 +54,10 @@ public interface IStargateRepository
         AstronautDetail detail,
         CancellationToken cancellationToken = default);
 
+    Task<int> AddAstronautDutyAsync(
+        AstronautDuty duty,
+        CancellationToken cancellationToken = default);
+
     Task<int> UpdateAstronautNameAsync(
         Person astronaut,
         string newName,
@@ -54,6 +66,10 @@ public interface IStargateRepository
     Task<int> UpdateAstronautDetailAsync(
         AstronautDetail currentDetail,
         CreateAstronautDuty newDetail,
+        CancellationToken cancellationToken = default);
+
+    Task<int> UpdateAstronautDutyAsync(
+        AstronautDuty currentDuty,
         CancellationToken cancellationToken = default);
 
     #endregion
@@ -75,6 +91,11 @@ public class StargateRepository : IStargateRepository
         string name,
         CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrEmpty(name))
+        {
+            throw new ArgumentNullException(nameof(name));
+        }
+
         return await _context.People
             .FirstOrDefaultAsync(x => x.Name.ToUpper().Equals(name.ToUpper()));
     }
@@ -124,7 +145,7 @@ public class StargateRepository : IStargateRepository
         int personId,
         CancellationToken cancellationToken = default)
     {
-        if (personId > 0)
+        if (personId <= 0)
         {
             throw new ArgumentNullException(nameof(personId));
         }
@@ -132,23 +153,70 @@ public class StargateRepository : IStargateRepository
         return await _context.AstronautDuties
             .OrderByDescending(x => x.DutyStartDate)
             .Where(x => x.PersonId == personId)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<AstronautDuty?> GetAstronautDutyByIdTitleStartDateAsync(
+        int id,
+        string title,
+        DateTime startDate,
+        CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentNullException(nameof(id));
+        }
+        if (string.IsNullOrEmpty(title))
+        {
+            throw new ArgumentNullException(nameof(title));
+        }
+
+        return await _context.AstronautDuties
+            .FirstOrDefaultAsync(
+                x => x.PersonId == id && x.DutyTitle == title && x.DutyStartDate == startDate,
+                cancellationToken);
+    }
+    public async Task<AstronautDuty?> GetMostRecentAstronautDutyByAstronautIdAsync(
+        int id,
+        CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentNullException(nameof(id));
+        }
+
+        return await _context.AstronautDuties
+            .OrderByDescending(x => x.DutyStartDate)
+            .FirstOrDefaultAsync(x => x.PersonId == id, cancellationToken);
     }
 
     public async Task<Person?> GetUntrackedAstronautByNameAsync(
         string name,
         CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrEmpty(name))
+        {
+            throw new ArgumentNullException(nameof(name));
+        }
+
         return await _context.People
             .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Name.ToUpper().Equals(name.ToUpper()));
+            .FirstOrDefaultAsync(
+                x => x.Name.ToUpper().Equals(name.ToUpper()),
+                cancellationToken);
     }
 
     public async Task<AstronautDetail?> GetAstronautDetailByIdAsync(
         int id,
         CancellationToken cancellationToken = default)
     {
-        return await _context.AstronautDetails.FirstOrDefaultAsync(x => x.PersonId == id);
+        if (id <= 0)
+        {
+            throw new ArgumentNullException(nameof(id));
+        }
+
+        return await _context.AstronautDetails
+            .FirstOrDefaultAsync(x => x.PersonId == id, cancellationToken: cancellationToken);
     }
 
     #endregion
@@ -178,6 +246,19 @@ public class StargateRepository : IStargateRepository
         }
 
         _ = await _context.AstronautDetails.AddAsync(detail, cancellationToken);
+        return await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<int> AddAstronautDutyAsync(
+        AstronautDuty duty,
+        CancellationToken cancellationToken = default)
+    {
+        if (duty is null)
+        {
+            throw new ArgumentNullException(nameof(duty));
+        }
+
+        _ = await _context.AstronautDuties.AddAsync(duty, cancellationToken);
         return await _context.SaveChangesAsync(cancellationToken);
     }
 
@@ -215,6 +296,19 @@ public class StargateRepository : IStargateRepository
 
         currentDetail.CurrentDutyTitle = newDetail.DutyTitle;
         currentDetail.CurrentRank = newDetail.Rank;
+        return await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<int> UpdateAstronautDutyAsync(
+        AstronautDuty duty,
+        CancellationToken cancellationToken = default)
+    {
+        if (duty is null)
+        {
+            throw new ArgumentNullException(nameof(duty));
+        }
+
+        _ = _context.AstronautDuties.Update(duty);
         return await _context.SaveChangesAsync(cancellationToken);
     }
 

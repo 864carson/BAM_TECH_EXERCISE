@@ -1,5 +1,5 @@
 ﻿using MediatR;
-using Microsoft.EntityFrameworkCore;
+using MediatR.Pipeline;
 using StargateAPI.Business.Data;
 using StargateAPI.Business.Validators;
 using StargateAPI.Controllers;
@@ -44,15 +44,23 @@ public class CreateAstronautDutyResult : BaseResponse
 /// <param name="context">The Stargate context.</param>
 /// <returns>A task representing the asynchronous operation.</returns>
 /// <exception cref="BadHttpRequestException">Thrown when the astronaut has a previous duty.</exception>
-public class CreateAstronautDutyPreProcessor
-    : BasePreProcessor<CreateAstronautDuty, CreateAstronautDutyResult>
+public class CreateAstronautDutyPreProcessor : IRequestPreProcessor<CreateAstronautDuty>
 {
+    /// <summary>Represents the logic-specific part of the application configuration.</summary>
+    private readonly AppConfig _config;
+
+    /// <summary>Represents the person repository for interacting with the Stargate database.</summary>
+    private readonly IStargateRepository _stargateRepository;
+
     /// <summary>
     /// Initializes a new instance of the CreateAstronautDutyPreProcessor class with the specified StargateContext.
     /// </summary>
     /// <param name="context">The StargateContext used for processing.</param>
-    public CreateAstronautDutyPreProcessor(AppConfig config, StargateContext context) : base(config, context)
-    { }
+    public CreateAstronautDutyPreProcessor(IStargateRepository astronautRepository, AppConfig config)
+    {
+        _stargateRepository = astronautRepository ?? throw new ArgumentNullException(nameof(astronautRepository));
+        _config = config ?? throw new ArgumentNullException(nameof(config));
+    }
 
     /// <summary>
     /// Processes the creation of an astronaut duty based on the provided request.
@@ -61,14 +69,16 @@ public class CreateAstronautDutyPreProcessor
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
     /// <exception cref="BadHttpRequestException">Thrown when a person with the same name already has an astronaut duty or when no person is found with the given name.</exception>
-    public override Task Process(CreateAstronautDuty request, CancellationToken cancellationToken)
+    public Task Process(CreateAstronautDuty request, CancellationToken cancellationToken)
     {
         if (!CreateAstronautDutyRequestValidator.IsValid(_config, request))
         {
             throw new ArgumentException("A valid request object is required.", nameof(request));
         }
 
-        Person? person = Convenience.GetUntrackedPersonByName(_context, request.Name);
+        Person? person = _stargateRepository
+            .GetUntrackedAstronautByNameAsync(request.Name, cancellationToken)
+            .Result;
         if (person is null)
         {
             throw new BadHttpRequestException(
@@ -76,10 +86,14 @@ public class CreateAstronautDutyPreProcessor
                 (int)HttpStatusCode.NotFound);
         }
 
-        // Verify the astronaut has no previous duty matching the specified title and start date.
+        // Verify no duty for this astronaut matches the specified title and start date.
         // As the logic is written below, this SHOULD ALWAYS BE NULL due to the start date being a timestamp.
-        AstronautDuty? verifyNoPreviousDuty = _context.AstronautDuties
-            .FirstOrDefault(x => x.DutyTitle == request.DutyTitle && x.DutyStartDate == request.DutyStartDate);
+        AstronautDuty? verifyNoPreviousDuty = _stargateRepository.GetAstronautDutyByIdTitleStartDateAsync(
+            person.Id,
+            request.DutyTitle,
+            request.DutyStartDate,
+            cancellationToken)
+            .Result;
         if (verifyNoPreviousDuty is not null)
         {
             throw new BadHttpRequestException(
@@ -136,8 +150,8 @@ public class CreateAstronautDutyHandler : IRequestHandler<CreateAstronautDuty, C
             return new CreateAstronautDutyResult()
             {
                 Message = $"No person was found matching name '{request.Name}'",
-                Success = true,
-                ResponseCode = (int)HttpStatusCode.NotFound;
+                Success = false,
+                ResponseCode = (int)HttpStatusCode.NotFound
             };
         }
 
@@ -172,19 +186,19 @@ public class CreateAstronautDutyHandler : IRequestHandler<CreateAstronautDuty, C
 
             // Update the astronaut's details
             _ = await _stargateRepository
-                .UpdateAstronautDetailAsync(astronautDetail, request, cancellationToken)
+                .UpdateAstronautDetailAsync(astronautDetail, request, cancellationToken);
         }
 
         // Get the astronaut's duty records
-        AstronautDuty? astronautDuty = await _context.AstronautDuties
-            .OrderByDescending(x => x.DutyStartDate)
-            .FirstOrDefaultAsync(x => x.PersonId == person.Id);
+        AstronautDuty? astronautDuty = await _stargateRepository
+            .GetMostRecentAstronautDutyByAstronautIdAsync(person.Id, cancellationToken);
         if (astronautDuty is not null)
         {
             astronautDuty.DutyEndDate = request.DutyStartDate.AddDays(-1).Date;
 
             // Update the astronaut's duty record end date
-            _context.AstronautDuties.Update(astronautDuty);
+            _ = await _stargateRepository
+                .UpdateAstronautDutyAsync(astronautDuty, cancellationToken);
         }
 
         // Create and add the new duty record to the database
@@ -196,9 +210,8 @@ public class CreateAstronautDutyHandler : IRequestHandler<CreateAstronautDuty, C
             DutyStartDate = request.DutyStartDate.Date,
             DutyEndDate = null
         };
-
-        _ = await _context.AstronautDuties.AddAsync(newAstronautDuty, cancellationToken);
-        _ = await _context.SaveChangesAsync(cancellationToken);
+        _ = await _stargateRepository
+            .AddAstronautDutyAsync(newAstronautDuty, cancellationToken);
 
         return new CreateAstronautDutyResult()
         {
