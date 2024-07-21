@@ -1,7 +1,9 @@
 ﻿using MediatR;
-using Microsoft.EntityFrameworkCore;
+using MediatR.Pipeline;
 using StargateAPI.Business.Data;
+using StargateAPI.Business.Validators;
 using StargateAPI.Controllers;
+using StargateAPI.Repositories;
 using System.Net;
 
 namespace StargateAPI.Business.Commands;
@@ -32,11 +34,17 @@ public class UpdatePersonResult : BaseResponse
 /// The UpdatePersonPreProcessor class names sure a person with the current name already exists in
 /// the database before processing the request.
 /// </summary>
-public class UpdatePersonPreProcessor : BasePreProcessor<UpdatePerson, UpdatePersonResult>
+public class UpdatePersonPreProcessor : IRequestPreProcessor<UpdatePerson>
 {
+    /// <summary>Represents the person repository for interacting with the Stargate database.</summary>
+    private readonly IStargateRepository _stargateRepository;
+
     /// <summary>Initializes a new instance of the UpdatePersonPreProcessor class.</summary>
     /// <param name="context">The StargateContext used for updating a person.</param>
-    public UpdatePersonPreProcessor(StargateContext context) : base(context) { }
+    public UpdatePersonPreProcessor(IStargateRepository astronautRepository)
+    {
+        _stargateRepository = astronautRepository ?? throw new ArgumentNullException(nameof(astronautRepository));
+    }
 
     /// <summary>
     /// Processes an update request for a person.
@@ -47,12 +55,17 @@ public class UpdatePersonPreProcessor : BasePreProcessor<UpdatePerson, UpdatePer
     /// <exception cref="BadHttpRequestException">
     /// Thrown when no person is found matching the current name in the request.
     /// /// </exception>
-    public override Task Process(UpdatePerson request, CancellationToken cancellationToken)
+    public Task Process(UpdatePerson request, CancellationToken cancellationToken)
     {
+        if (!UpdatePersonRequestValidator.IsValid(request))
+        {
+            throw new ArgumentException("A valid request object is required.", nameof(request));
+        }
+
         // Make sure there is a person in the database with a matching name
-        Person? person = _context.People
-            .AsNoTracking()
-            .FirstOrDefault(x => x.Name.ToUpper() == request.CurrentName.ToUpper());
+        Person? person = _stargateRepository.GetUntrackedAstronautByNameAsync(
+            request.CurrentName,
+            cancellationToken).Result;
         if (person is null)
         {
             throw new BadHttpRequestException(
@@ -76,11 +89,17 @@ public class UpdatePersonPreProcessor : BasePreProcessor<UpdatePerson, UpdatePer
 /// </remarks>
 /// <param name="context">The StargateContext for database operations.</param>
 /// <returns>An UpdatePersonResult object with the updated person's ID.</returns>
-public class UpdatePersonHandler : BaseCommandHandler<UpdatePerson, UpdatePersonResult>
+public class UpdatePersonHandler : IRequestHandler<UpdatePerson, UpdatePersonResult>
 {
+    /// <summary>Represents the person repository for interacting with the Stargate database.</summary>
+    private readonly IStargateRepository _stargateRepository;
+
     /// <summary>Initializes a new instance of the UpdatePersonHandler class.</summary>
     /// <param name="context">The StargateContext used for updating a person.</param>
-    public UpdatePersonHandler(StargateContext context) : base(context) { }
+    public UpdatePersonHandler(IStargateRepository astronautRepository)
+    {
+        _stargateRepository = astronautRepository ?? throw new ArgumentNullException(nameof(astronautRepository));
+    }
 
     /// <summary>
     /// Handles the updating of a person's name.
@@ -88,15 +107,32 @@ public class UpdatePersonHandler : BaseCommandHandler<UpdatePerson, UpdatePerson
     /// <param name="request">The request containing the current and new names of the person.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>An UpdatePersonResult object containing the updated person's ID.</returns>
-    public async override Task<UpdatePersonResult> Handle(UpdatePerson request, CancellationToken cancellationToken)
+    public async Task<UpdatePersonResult> Handle(UpdatePerson request, CancellationToken cancellationToken)
     {
+        if (!UpdatePersonRequestValidator.IsValid(request))
+        {
+            throw new ArgumentException("A valid request object is required.", nameof(request));
+        }
+
         // We know there is a matching person record, because we made it through the preprocessor
-        Person existingPerson = await _context.People
-            .FirstAsync(x => x.Name.ToUpper() == request.CurrentName.ToUpper());
+        Person? existingPerson = (await _stargateRepository.GetAstronautByNameAsync(
+            request.CurrentName,
+            cancellationToken));
+        if (existingPerson is null)
+        {
+            return new UpdatePersonResult
+            {
+                Message = $"No person was found matching name '{request.CurrentName}'",
+                Success = false,
+                ResponseCode = (int)HttpStatusCode.NotFound
+            };
+        }
 
         // Update the person's name in the database
-        existingPerson.Name = request.NewName;
-        _ = await _context.SaveChangesAsync(cancellationToken);
+        _ = await _stargateRepository.UpdateAstronautNameAsync(
+            existingPerson,
+            request.NewName,
+            cancellationToken);
 
         return new UpdatePersonResult
         {

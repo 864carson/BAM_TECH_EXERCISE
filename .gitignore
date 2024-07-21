@@ -1,4 +1,6 @@
+/.vs
+
 bin/
 obj/
-package/exercise1/api/starbase.db
-/.vs
+
+starbase.db

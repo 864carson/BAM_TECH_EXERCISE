@@ -1,8 +1,7 @@
 ﻿using MediatR;
-using Microsoft.EntityFrameworkCore;
-using StargateAPI.Business.Data;
 using StargateAPI.Business.Dtos;
 using StargateAPI.Controllers;
+using StargateAPI.Repositories;
 
 namespace StargateAPI.Business.Queries;
 
@@ -21,35 +20,31 @@ public class GetPeopleResult : BaseResponse
     public List<PersonAstronaut> People { get; set; } = [];
 }
 
-public class GetPeopleHandler : BaseQueryHandler<GetPeople, GetPeopleResult>
+public class GetPeopleHandler : IRequestHandler<GetPeople, GetPeopleResult>
 {
+    /// <summary>Represents the person repository for interacting with the Stargate database.</summary>
+    private readonly IStargateRepository _personRepository;
+
     /// <summary>Initializes a new instance of the GetPeopleHandler class.</summary>
     /// <param name="context">The StargateContext used for retrieving all people.</param>
-    public GetPeopleHandler(StargateContext context) : base(context) { }
+    public GetPeopleHandler(IStargateRepository personRepo)
+    {
+        _personRepository = personRepo ?? throw new ArgumentNullException(nameof(personRepo));
+    }
 
     /// <summary>
     /// Handles the request to retrieve all people.
     /// </summary>
     /// <param name="request">The empty request.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task representing the asynchronous operation that returns the result of retrieving all people.</returns>
-    public async override Task<GetPeopleResult> Handle(GetPeople request, CancellationToken cancellationToken)
+    /// <returns>
+    /// A task representing the asynchronous operation that returns the result of retrieving all people.
+    /// </returns>
+    public async Task<GetPeopleResult> Handle(GetPeople request, CancellationToken cancellationToken)
     {
-        GetPeopleResult result = new()
+        return new GetPeopleResult()
         {
-            People = await (from p in _context.People
-                            from ad in _context.AstronautDetails.Where(x => x.PersonId == p.Id).DefaultIfEmpty()
-                            select new PersonAstronaut
-                            {
-                                PersonId = p.Id,
-                                Name = p.Name,
-                                CurrentRank = ad.CurrentRank,
-                                CurrentDutyTitle = ad.CurrentDutyTitle,
-                                CareerStartDate = ad.CareerStartDate,
-                                CareerEndDate = ad.CareerEndDate
-                            }).ToListAsync(cancellationToken: cancellationToken)
+            People = await _personRepository.GetAllAstronautDetailsAsync(cancellationToken)
         };
-
-        return result;
     }
 }

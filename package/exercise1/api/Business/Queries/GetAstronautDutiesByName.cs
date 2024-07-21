@@ -1,8 +1,9 @@
 ﻿using MediatR;
-using Microsoft.EntityFrameworkCore;
 using StargateAPI.Business.Data;
 using StargateAPI.Business.Dtos;
+using StargateAPI.Business.Validators;
 using StargateAPI.Controllers;
+using StargateAPI.Repositories;
 using System.Net;
 
 namespace StargateAPI.Business.Queries;
@@ -38,11 +39,17 @@ public class GetAstronautDutiesByNameResult : BaseResponse
 /// The result type of getting astronaut duties by astronaut name.
 /// </typeparam>
 public class GetAstronautDutiesByNameHandler
-    : BaseQueryHandler<GetAstronautDutiesByName, GetAstronautDutiesByNameResult>
+    : IRequestHandler<GetAstronautDutiesByName, GetAstronautDutiesByNameResult>
 {
+    /// <summary>Represents the person repository for interacting with the Stargate database.</summary>
+    private readonly IStargateRepository _personRepository;
+
     /// <summary>Initializes a new instance of the GetAstronautDutiesByNameHandler class.</summary>
     /// <param name="context">The StargateContext used for retrieving astronaut duties by astronaut name.</param>
-    public GetAstronautDutiesByNameHandler(StargateContext context) : base(context) { }
+    public GetAstronautDutiesByNameHandler(IStargateRepository personRepo)
+    {
+        _personRepository = personRepo ?? throw new ArgumentNullException(nameof(personRepo));
+    }
 
     /// <summary>
     /// Handles the request to retrieve astronaut duties by astronaut name.
@@ -52,22 +59,18 @@ public class GetAstronautDutiesByNameHandler
     /// <returns>
     /// A task representing the asynchronous operation that returns the result of retrieving astronaut duties by astronaut name.
     /// </returns>
-    public async override Task<GetAstronautDutiesByNameResult> Handle(
+    public async Task<GetAstronautDutiesByNameResult> Handle(
         GetAstronautDutiesByName request,
         CancellationToken cancellationToken)
     {
-        GetAstronautDutiesByNameResult result = new();
+        if (!GetAstronautDutiesByNameRequestValidator.IsValid(request))
+        {
+            throw new ArgumentException("A valid request object is required.", nameof(request));
+        }
 
-        PersonAstronaut? person = await (from p in _context.People
-                                  where request.Name.Equals(p.Name, StringComparison.OrdinalIgnoreCase)
-                                  from ad in _context.AstronautDetails.Where(x => x.PersonId == p.Id).DefaultIfEmpty()
-                                  select new PersonAstronaut {
-                                    PersonId = p.Id,
-                                    Name = p.Name,
-                                    CurrentRank = ad.CurrentRank,
-                                    CareerStartDate = ad.CareerStartDate,
-                                    CareerEndDate = ad.CareerEndDate
-                                  }).FirstOrDefaultAsync(cancellationToken: cancellationToken);
+        GetAstronautDutiesByNameResult result = new();
+        PersonAstronaut? person =
+            await _personRepository.GetAstronautDetailsByNameAsync(request.Name, cancellationToken);
         if (person is null)
         {
             result.Message = $"No person was found matching name '{request.Name}'";
@@ -77,9 +80,8 @@ public class GetAstronautDutiesByNameHandler
         }
         result.Person = person!;
 
-        result.AstronautDuties = _context.AstronautDuties
-            .OrderByDescending(x => x.DutyStartDate)
-            .Where(x => x.PersonId == person.PersonId).ToList();
+        result.AstronautDuties =
+            await _personRepository.GetAstronautDutiesByAstronautIdAsync(result.Person.PersonId);
 
         return result;
     }

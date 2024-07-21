@@ -1,7 +1,9 @@
 ﻿using MediatR;
-using Microsoft.EntityFrameworkCore;
+using MediatR.Pipeline;
 using StargateAPI.Business.Data;
+using StargateAPI.Business.Validators;
 using StargateAPI.Controllers;
+using StargateAPI.Repositories;
 using System.Net;
 
 namespace StargateAPI.Business.Commands;
@@ -42,14 +44,23 @@ public class CreateAstronautDutyResult : BaseResponse
 /// <param name="context">The Stargate context.</param>
 /// <returns>A task representing the asynchronous operation.</returns>
 /// <exception cref="BadHttpRequestException">Thrown when the astronaut has a previous duty.</exception>
-public class CreateAstronautDutyPreProcessor
-    : BasePreProcessor<CreateAstronautDuty, CreateAstronautDutyResult>
+public class CreateAstronautDutyPreProcessor : IRequestPreProcessor<CreateAstronautDuty>
 {
+    /// <summary>Represents the logic-specific part of the application configuration.</summary>
+    private readonly AppConfig _config;
+
+    /// <summary>Represents the person repository for interacting with the Stargate database.</summary>
+    private readonly IStargateRepository _stargateRepository;
+
     /// <summary>
     /// Initializes a new instance of the CreateAstronautDutyPreProcessor class with the specified StargateContext.
     /// </summary>
     /// <param name="context">The StargateContext used for processing.</param>
-    public CreateAstronautDutyPreProcessor(StargateContext context) : base(context) { }
+    public CreateAstronautDutyPreProcessor(IStargateRepository astronautRepository, AppConfig config)
+    {
+        _stargateRepository = astronautRepository ?? throw new ArgumentNullException(nameof(astronautRepository));
+        _config = config ?? throw new ArgumentNullException(nameof(config));
+    }
 
     /// <summary>
     /// Processes the creation of an astronaut duty based on the provided request.
@@ -58,27 +69,36 @@ public class CreateAstronautDutyPreProcessor
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
     /// <exception cref="BadHttpRequestException">Thrown when a person with the same name already has an astronaut duty or when no person is found with the given name.</exception>
-    public override Task Process(CreateAstronautDuty request, CancellationToken cancellationToken)
+    public Task Process(CreateAstronautDuty request, CancellationToken cancellationToken)
     {
-        Person? person = Utils.GetUntrackedPersonByName(_context, request.Name);
+        if (!CreateAstronautDutyRequestValidator.IsValid(_config, request))
+        {
+            throw new ArgumentException("A valid request object is required.", nameof(request));
+        }
+
+        Person? person = _stargateRepository
+            .GetUntrackedAstronautByNameAsync(request.Name, cancellationToken)
+            .Result;
         if (person is null)
         {
             throw new BadHttpRequestException(
                 $"No person was found matching name '{request.Name}'",
-                (int)HttpStatusCode.NotFound
-            );
+                (int)HttpStatusCode.NotFound);
         }
 
-        // Verify the astronaut has no previous duty matching the specified title and start date.
-        // As the logic is written below, this should always be null due to the start date being a timestamp.
-        AstronautDuty? verifyNoPreviousDuty = _context.AstronautDuties
-            .FirstOrDefault(x => x.DutyTitle == request.DutyTitle && x.DutyStartDate == request.DutyStartDate);
+        // Verify no duty for this astronaut matches the specified title and start date.
+        // As the logic is written below, this SHOULD ALWAYS BE NULL due to the start date being a timestamp.
+        AstronautDuty? verifyNoPreviousDuty = _stargateRepository.GetAstronautDutyByIdTitleStartDateAsync(
+            person.Id,
+            request.DutyTitle,
+            request.DutyStartDate,
+            cancellationToken)
+            .Result;
         if (verifyNoPreviousDuty is not null)
         {
             throw new BadHttpRequestException(
                 $"'{request.Name}' has previous Astronaut Duty",
-                (int)HttpStatusCode.BadRequest
-            );
+                (int)HttpStatusCode.BadRequest);
         }
 
         return Task.CompletedTask;
@@ -91,14 +111,19 @@ public class CreateAstronautDutyPreProcessor
 /// <param name="command">The command to create a new astronaut duty.</param>
 /// <param name="cancellationToken">The cancellation token.</param>
 /// <returns>The result of creating a new astronaut duty.</returns>
-public class CreateAstronautDutyHandler : BaseCommandHandler<CreateAstronautDuty, CreateAstronautDutyResult>
+public class CreateAstronautDutyHandler : IRequestHandler<CreateAstronautDuty, CreateAstronautDutyResult>
 {
+    /// <summary>Represents the person repository for interacting with the Stargate database.</summary>
+    private readonly IStargateRepository _stargateRepository;
+
+    /// <summary>Represents the logic-specific part of the application configuration.</summary>
     private readonly AppConfig _config;
 
     /// <summary>Initializes a new instance of the CreateAstronautDutyHandler class.</summary>
     /// <param name="context">The StargateContext to be used for database operations.</param>
-    public CreateAstronautDutyHandler(AppConfig config, StargateContext context) : base(context)
+    public CreateAstronautDutyHandler(IStargateRepository astronautRepository, AppConfig config)
     {
+        _stargateRepository = astronautRepository ?? throw new ArgumentNullException(nameof(astronautRepository));
         _config = config ?? throw new ArgumentNullException(nameof(config));
     }
 
@@ -108,15 +133,31 @@ public class CreateAstronautDutyHandler : BaseCommandHandler<CreateAstronautDuty
     /// <param name="request">The request containing the astronaut's name.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task representing the asynchronous operation, returning the result of creating the astronaut duty.</returns>
-    public async override Task<CreateAstronautDutyResult> Handle(
+    public async Task<CreateAstronautDutyResult> Handle(
         CreateAstronautDuty request,
         CancellationToken cancellationToken)
     {
+        if (!CreateAstronautDutyRequestValidator.IsValid(_config, request))
+        {
+            throw new ArgumentException("A valid request object is required.", nameof(request));
+        }
+
         // We know there is a matching person record, because we made it through the preprocessor
-        Person person = Utils.GetUntrackedPersonByName(_context, request.Name)!;
+        Person? person = await _stargateRepository
+            .GetUntrackedAstronautByNameAsync(request.Name, cancellationToken);
+        if (person is null)
+        {
+            return new CreateAstronautDutyResult()
+            {
+                Message = $"No person was found matching name '{request.Name}'",
+                Success = false,
+                ResponseCode = (int)HttpStatusCode.NotFound
+            };
+        }
 
         // Get the astronaut's detail
-        AstronautDetail? astronautDetail = await _context.AstronautDetails.FirstOrDefaultAsync(x => x.PersonId == person.Id);
+        AstronautDetail? astronautDetail = await _stargateRepository
+            .GetAstronautDetailByIdAsync(person.Id, cancellationToken);
         if (astronautDetail is null)
         {
             astronautDetail = new AstronautDetail
@@ -133,31 +174,31 @@ public class CreateAstronautDutyHandler : BaseCommandHandler<CreateAstronautDuty
             }
 
             // Save the astronaut's details
-            _ = await _context.AstronautDetails.AddAsync(astronautDetail, cancellationToken);
+            _ = await _stargateRepository
+                .AddAstronautDetailAsync(astronautDetail, cancellationToken);
         }
         else
         {
-            astronautDetail.CurrentDutyTitle = request.DutyTitle;
-            astronautDetail.CurrentRank = request.Rank;
             if (request.DutyTitle == _config.RetiredDutyTitle)
             {
                 astronautDetail.CareerEndDate = request.DutyStartDate.AddDays(-1).Date;
             }
 
             // Update the astronaut's details
-            _ = _context.AstronautDetails.Update(astronautDetail);
+            _ = await _stargateRepository
+                .UpdateAstronautDetailAsync(astronautDetail, request, cancellationToken);
         }
 
         // Get the astronaut's duty records
-        AstronautDuty? astronautDuty = await _context.AstronautDuties
-            .OrderByDescending(x => x.DutyStartDate)
-            .FirstOrDefaultAsync(x => x.PersonId == person.Id);
+        AstronautDuty? astronautDuty = await _stargateRepository
+            .GetMostRecentAstronautDutyByAstronautIdAsync(person.Id, cancellationToken);
         if (astronautDuty is not null)
         {
             astronautDuty.DutyEndDate = request.DutyStartDate.AddDays(-1).Date;
 
             // Update the astronaut's duty record end date
-            _context.AstronautDuties.Update(astronautDuty);
+            _ = await _stargateRepository
+                .UpdateAstronautDutyAsync(astronautDuty, cancellationToken);
         }
 
         // Create and add the new duty record to the database
@@ -169,39 +210,12 @@ public class CreateAstronautDutyHandler : BaseCommandHandler<CreateAstronautDuty
             DutyStartDate = request.DutyStartDate.Date,
             DutyEndDate = null
         };
-
-        _ = await _context.AstronautDuties.AddAsync(newAstronautDuty, cancellationToken);
-        _ = await _context.SaveChangesAsync(cancellationToken);
+        _ = await _stargateRepository
+            .AddAstronautDutyAsync(newAstronautDuty, cancellationToken);
 
         return new CreateAstronautDutyResult()
         {
             Id = newAstronautDuty.Id
         };
-    }
-}
-
-/// <summary>
-/// Retrieves a person from the database without tracking by name.
-/// </summary>
-/// <param name="context">The database context.</param>
-/// <param name="name">The name of the person to retrieve.</param>
-/// <returns>The person with the specified name, or null if not found or if the name is empty.</returns>
-internal static class Utils
-{
-    /// <summary>
-    /// Retrieves a person by name without tracking in the database.
-    /// </summary>
-    /// <param name="context">The database context.</param>
-    /// <param name="name">The name of the person to retrieve.</param>
-    /// <returns>
-    /// The person with the specified name, or null if the name is empty or the person is not found.
-    /// </returns>
-    internal static Person? GetUntrackedPersonByName(StargateContext context, string name)
-    {
-        if (string.IsNullOrEmpty(name)) return null;
-
-        return context.People
-            .AsNoTracking()
-            .FirstOrDefault(x => x.Name.ToUpper() == name.ToUpper());
     }
 }
