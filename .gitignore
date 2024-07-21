@@ -4,3 +4,5 @@ bin/
 obj/
 
 starbase.db
+package/exercise1/api/starbase.db-shm
+package/exercise1/api/starbase.db-wal
