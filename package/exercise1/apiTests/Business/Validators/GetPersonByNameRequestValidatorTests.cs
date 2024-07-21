@@ -10,7 +10,7 @@ public class GetPersonByNameRequestValidatorTests
     [Test]
     public void IsValid_NullGetPersonByName_Test()
     {
-        bool result =  GetPersonByNameRequestValidator.IsValid(null);
+        bool result = GetPersonByNameRequestValidator.IsValid(null);
         Assert.That(result, Is.False);
     }
 
@@ -19,7 +19,7 @@ public class GetPersonByNameRequestValidatorTests
     [TestCase("")]
     public void IsValid_NullOrInvalidName_Test(string? name)
     {
-        bool result =  GetPersonByNameRequestValidator.IsValid(new GetPersonByName
+        bool result = GetPersonByNameRequestValidator.IsValid(new GetPersonByName
         {
             Name = name
         });
@@ -31,7 +31,7 @@ public class GetPersonByNameRequestValidatorTests
     [TestCase("Name1")]
     public void IsValid_ValidName_Test(string name)
     {
-        bool result =  GetPersonByNameRequestValidator.IsValid(new GetPersonByName
+        bool result = GetPersonByNameRequestValidator.IsValid(new GetPersonByName
         {
             Name = name
         });

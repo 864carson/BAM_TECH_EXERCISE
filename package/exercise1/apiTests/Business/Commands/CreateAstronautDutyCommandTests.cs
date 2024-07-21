@@ -73,7 +73,8 @@ public class CreateAstronautDutyCommandTests
                 DutyEndDate = null
             });
 
-        CreateAstronautDuty request = new() { 
+        CreateAstronautDuty request = new()
+        {
             Name = "Its Me",
             Rank = "Seargent",
             DutyTitle = "King of the Hill",

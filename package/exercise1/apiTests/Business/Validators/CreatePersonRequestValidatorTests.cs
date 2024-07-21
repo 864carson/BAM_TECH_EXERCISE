@@ -10,7 +10,7 @@ public class CreatePersonRequestValidatorTests
     [Test]
     public void IsValid_NullCreatePerson_Test()
     {
-        bool result =  CreatePersonRequestValidator.IsValid(null);
+        bool result = CreatePersonRequestValidator.IsValid(null);
         Assert.That(result, Is.False);
     }
 
@@ -19,7 +19,7 @@ public class CreatePersonRequestValidatorTests
     [TestCase("")]
     public void IsValid_NullOrInvalidName_Test(string? name)
     {
-        bool result =  CreatePersonRequestValidator.IsValid(new CreatePerson
+        bool result = CreatePersonRequestValidator.IsValid(new CreatePerson
         {
             Name = name
         });
@@ -31,7 +31,7 @@ public class CreatePersonRequestValidatorTests
     [TestCase("Name1")]
     public void IsValid_ValidName_Test(string name)
     {
-        bool result =  CreatePersonRequestValidator.IsValid(new CreatePerson
+        bool result = CreatePersonRequestValidator.IsValid(new CreatePerson
         {
             Name = name
         });

@@ -96,7 +96,7 @@ public class UpdatePersonCommandTests
             .ReturnsAsync(new Person
             {
                 Id = 1,
-                Name = "Tester"                
+                Name = "Tester"
             });
         _stargateRepositoryMock
             .Setup(x => x.UpdateAstronautNameAsync(It.IsAny<Person>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))

@@ -10,7 +10,7 @@ public class UpdatePersonRequestValidatorTests
     [Test]
     public void IsValid_NullUpdatePerson_Test()
     {
-        bool result =  UpdatePersonRequestValidator.IsValid(null);
+        bool result = UpdatePersonRequestValidator.IsValid(null);
         Assert.That(result, Is.False);
     }
 
@@ -21,7 +21,7 @@ public class UpdatePersonRequestValidatorTests
     [TestCase("Name1", "")]
     public void IsValid_NullOrInvalidNames_Test(string? currentName, string? newName)
     {
-        bool result =  UpdatePersonRequestValidator.IsValid(new UpdatePerson
+        bool result = UpdatePersonRequestValidator.IsValid(new UpdatePerson
         {
             CurrentName = currentName,
             NewName = newName
@@ -36,7 +36,7 @@ public class UpdatePersonRequestValidatorTests
     [TestCase("Name1", "Name2")]
     public void IsValid_ValidNames_Test(string currentName, string newName)
     {
-        bool result =  UpdatePersonRequestValidator.IsValid(new UpdatePerson
+        bool result = UpdatePersonRequestValidator.IsValid(new UpdatePerson
         {
             CurrentName = currentName,
             NewName = newName

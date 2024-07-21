@@ -10,7 +10,7 @@ public class GetAstronautDutiesByNameRequestValidatorTests
     [Test]
     public void IsValid_NullGetPersonByName_Test()
     {
-        bool result =  GetAstronautDutiesByNameRequestValidator.IsValid(null);
+        bool result = GetAstronautDutiesByNameRequestValidator.IsValid(null);
         Assert.That(result, Is.False);
     }
 
@@ -19,7 +19,7 @@ public class GetAstronautDutiesByNameRequestValidatorTests
     [TestCase("")]
     public void IsValid_NullOrInvalidName_Test(string? name)
     {
-        bool result =  GetAstronautDutiesByNameRequestValidator.IsValid(new GetAstronautDutiesByName
+        bool result = GetAstronautDutiesByNameRequestValidator.IsValid(new GetAstronautDutiesByName
         {
             Name = name
         });
@@ -31,7 +31,7 @@ public class GetAstronautDutiesByNameRequestValidatorTests
     [TestCase("Name1")]
     public void IsValid_ValidName_Test(string name)
     {
-        bool result =  GetAstronautDutiesByNameRequestValidator.IsValid(new GetAstronautDutiesByName
+        bool result = GetAstronautDutiesByNameRequestValidator.IsValid(new GetAstronautDutiesByName
         {
             Name = name
         });
