@@ -79,6 +79,8 @@ public class CreateAstronautDutyPreProcessor : IRequestPreProcessor<CreateAstron
         Person? person = _stargateRepository
             .GetUntrackedAstronautByNameAsync(request.Name, cancellationToken)
             .Result;
+
+        // Rule #1) A Person is uniquely identified by their name.
         if (person is null)
         {
             throw new BadHttpRequestException(
@@ -88,6 +90,7 @@ public class CreateAstronautDutyPreProcessor : IRequestPreProcessor<CreateAstron
 
         // Verify no duty for this astronaut matches the specified title and start date.
         // As the logic is written below, this SHOULD ALWAYS BE NULL due to the start date being a timestamp.
+        // Rule #3) A Person will only ever hold one current Astronaut Duty Title, Start Date, and Rank at a time.
         AstronautDuty? verifyNoPreviousDuty = _stargateRepository.GetAstronautDutyByIdTitleStartDateAsync(
             person.Id,
             request.DutyTitle,
@@ -145,6 +148,8 @@ public class CreateAstronautDutyHandler : IRequestHandler<CreateAstronautDuty, C
         // We know there is a matching person record, because we made it through the preprocessor
         Person? person = await _stargateRepository
             .GetUntrackedAstronautByNameAsync(request.Name, cancellationToken);
+
+        // Rule #1) A Person is uniquely identified by their name.
         if (person is null)
         {
             return new CreateAstronautDutyResult()
@@ -181,6 +186,7 @@ public class CreateAstronautDutyHandler : IRequestHandler<CreateAstronautDuty, C
         {
             if (request.DutyTitle == _config.RetiredDutyTitle)
             {
+                // Rule #7) A Person's Career End Date is one day before the Retired Duty Start Date.
                 astronautDetail.CareerEndDate = request.DutyStartDate.AddDays(-1).Date;
             }
 
@@ -194,6 +200,8 @@ public class CreateAstronautDutyHandler : IRequestHandler<CreateAstronautDuty, C
             .GetMostRecentAstronautDutyByAstronautIdAsync(person.Id, cancellationToken);
         if (astronautDuty is not null)
         {
+            // Rule #3) A Person will only ever hold one current Astronaut Duty Title, Start Date, and Rank at a time.
+            // Rule #5) A Person's Previous Duty End Date is set to the day before the New Astronaut Duty Start Date when a new Astronaut Duty is received for a Person.
             astronautDuty.DutyEndDate = request.DutyStartDate.AddDays(-1).Date;
 
             // Update the astronaut's duty record end date
@@ -202,13 +210,15 @@ public class CreateAstronautDutyHandler : IRequestHandler<CreateAstronautDuty, C
         }
 
         // Create and add the new duty record to the database
+        // Rule #4) A Person's Current Duty will not have a Duty End Date.
+        // Rule #7) A Person's Career End Date is one day before the Retired Duty Start Date.
         AstronautDuty newAstronautDuty = new()
         {
             PersonId = person.Id,
             Rank = request.Rank,
             DutyTitle = request.DutyTitle,
             DutyStartDate = request.DutyStartDate.Date,
-            DutyEndDate = null
+            DutyEndDate = (request.DutyTitle == _config.RetiredDutyTitle) ? request.DutyStartDate.AddDays(-1).Date : null
         };
         _ = await _stargateRepository
             .AddAstronautDutyAsync(newAstronautDuty, cancellationToken);

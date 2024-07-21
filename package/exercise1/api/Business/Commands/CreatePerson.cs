@@ -60,6 +60,7 @@ public class CreatePersonPreProcessor : IRequestPreProcessor<CreatePerson>
         }
 
         // Make sure there is not a person in the database with a matching name
+        // Rule #1) A Person is uniquely identified by their name.
         Person? person = _stargateRepository.GetUntrackedAstronautByNameAsync(
             request.Name,
             cancellationToken).Result;
