@@ -201,6 +201,7 @@ public class CreateAstronautDutyHandler : IRequestHandler<CreateAstronautDuty, C
         if (astronautDuty is not null)
         {
             // Rule #3) A Person will only ever hold one current Astronaut Duty Title, Start Date, and Rank at a time.
+            // Rule #5) A Person's Previous Duty End Date is set to the day before the New Astronaut Duty Start Date when a new Astronaut Duty is received for a Person.
             astronautDuty.DutyEndDate = request.DutyStartDate.AddDays(-1).Date;
 
             // Update the astronaut's duty record end date
