@@ -34,7 +34,7 @@ public class AstronautDutyController : ControllerBase
     {
         try
         {
-            return this.GetResponse(await _mediator.Send(new GetPersonByName
+            return this.GetResponse(await _mediator.Send(new GetAstronautDutiesByName
             {
                 Name = name
             }));
