@@ -1,0 +1,22 @@
+<section>
+    <form>
+        <input type="text" placeholder="Search by Astronaut Name" />
+        <button class="primary" type="button">Search</button>
+        &nbsp;
+        <button class="primary" type="button" (click)="showNewAstronautForm()">New Astronaut</button>
+    </form>
+</section>
+
+@if(newAstronautFormVisible) {
+    <br/>
+    <form>
+        <input id="newAstronautName" name="newAstronautName" type="text" placeholder="Astronaut Name" [(ngModel)]="newAstronaut.name" />
+        <button class="primary" type="button" (click)="addNewAstronaut()">Add</button>
+        <button class="secondary" type="button" (click)="hideNewAstronautForm()">Cancel</button>
+    </form>
+}
+
+<br/>
+<section>
+    <app-astronaut-results [reloadTable]="reloadTable"></app-astronaut-results>
+</section>

@@ -25,3 +25,14 @@ Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To u
 ## Further help
 
 To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+
+<hr/>
+
+## The UI is expected to do the following:
+- Display the progress of the process and the results in a visually sophisticated and appealing manner.
+
+## TODO:
+- Download BAM logo/icon
+- Figure out BAM colors
+- Download NASA logo/icon
+- Figure out NASA colors
