@@ -5,6 +5,7 @@ import { RouterOutlet } from '@angular/router';
 import { AstronautResultsComponent } from "../astronaut-results/astronaut-results.component";
 import { Astronaut } from '../models/astronaut.model';
 import { AstronautService } from '../services/astronaut-service/astronaut.service';
+import { AstronautDutyDto } from '../models/astronaut-duty-dto.model';
 
 @Component({
   selector: 'app-home',
@@ -14,11 +15,14 @@ import { AstronautService } from '../services/astronaut-service/astronaut.servic
   styleUrl: './home.component.css'
 })
 export class HomeComponent {
-  @Input() newAstronaut: Astronaut = new Astronaut();
-  reloadTable: boolean = false;
   astronautService: AstronautService = inject(AstronautService);
+  @Input() newAstronaut: Astronaut = new Astronaut();
+  @Input() newAstronautDuty: AstronautDutyDto = new AstronautDutyDto();
 
-  newAstronautFormVisible: boolean = false;
+  reloadTable: boolean = false;
+  isAddingNewAstronaut: boolean = false;
+  isInAddingStep1: boolean = false;
+  isInAddingStep2: boolean = false;
 
   constructor() { }
 
@@ -28,8 +32,25 @@ export class HomeComponent {
       .subscribe({
         next: (res) => {
           console.log(res);
+          this.newAstronautDuty.name = this.newAstronaut.name;
+          this.newAstronautDuty.dutyStartDate = new Date().toISOString();
+
           this.reloadTable = true;
+          this.isInAddingStep1 = false;
+          this.isInAddingStep2 = true;
+        },
+        error: (e) => console.error(e)
+      });
+  }
+
+  addAstronautDuty(): void {
+    console.log(this.newAstronautDuty.name);
+    this.astronautService.createAstronautDutyRecord(this.newAstronautDuty)
+      .subscribe({
+        next: (res) => {
+          console.log(res);
           this.hideNewAstronautForm();
+          this.reloadTable = true;
         },
         error: (e) => console.error(e)
       });
@@ -38,10 +59,12 @@ export class HomeComponent {
   showNewAstronautForm(): void {
     this.clearAstronautForm();
     this.reloadTable = false;
-    this.newAstronautFormVisible = true;
+    this.isAddingNewAstronaut = true;
+    this.isInAddingStep1 = true;
+    this.isInAddingStep2 = false;
   }
   hideNewAstronautForm(): void {
-    this.newAstronautFormVisible = false;
+    this.isAddingNewAstronaut = false;
   }
 
   clearAstronautForm(): void {

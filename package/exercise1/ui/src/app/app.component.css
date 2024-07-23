@@ -1,0 +1,16 @@
+.bannerSection {
+    height: 60px;
+    border-bottom: 4px solid #265aa6;
+    margin-bottom: 12px;
+}
+
+.footerSection {
+    height: 80px;
+    border-top: 4px solid #265aa6;
+    margin-top: 12px;
+    color: white;
+    background-color: #242424;
+    background-position: 70%;
+    background-size: cover;
+    background-image: url(https://cdn.prod.website-files.com/624478f6c59fb357d1fda0fc/6261ae5277d5049c8031ea19_footer-left.svg);
+}

@@ -8,4 +8,9 @@ import { RouterModule } from '@angular/router';
   templateUrl: './banner.component.html',
   styleUrl: './banner.component.css'
 })
-export class BannerComponent { }
+export class BannerComponent {
+  nasaNameLine1: string = "National Aeronautics and";
+  nasaNameLine2: string = "Space Administration";
+  appName: string = "Astronaut Career Tracking System (ACTS)";
+  codeName: string = "Stargate";
+}
