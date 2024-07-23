@@ -1,4 +1,4 @@
-import { Component, inject, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
+import { Component, inject, Input, Output, EventEmitter, SimpleChanges, OnChanges, ElementRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, DatePipe } from '@angular/common';
 import { RouterOutlet, RouterModule } from '@angular/router';
@@ -85,19 +85,20 @@ export class AstronautResultsComponent implements OnChanges {
           // Unbind first in order to avoid any duplicate handler
           $('td', row).off('click');
           $('td', row).on('click', () => {
-            this.showNewAstronautDutyForm(<Astronaut>data);
+            this.showNewAstronautDutyForm(<Astronaut>data, !row.firstChild?.parentElement?.classList.contains('selected'));
           });
           return row;
         },
         select: {
           style: 'single',
-          info: false
+          info: false,
+          toggleable: false
         },
         language: {
           entries: {
             _: 'astronauts',
             1: 'astronaut'
-        }
+          }
         }
       }
     } else {
@@ -152,7 +153,10 @@ export class AstronautResultsComponent implements OnChanges {
       });
   }
 
-  showNewAstronautDutyForm(astronaut: Astronaut): void {
+  showNewAstronautDutyForm(astronaut: Astronaut, isSelected: boolean): void {
+    if (!isSelected) return;
+
+    console.log(astronaut.name);
     this.loadDetails(astronaut.name);
     this.clearAstronautDutyForm();
 

@@ -1,21 +1,18 @@
-<div *ngIf="astronaut !== undefined">
-    {{ astronaut.id }}<br />
-    {{ astronaut.name }}<br />
-    {{ astronaut.currentRank }}<br />
-    {{ astronaut.currentDutyTitle }}<br />
-    {{ astronaut.careerStartDate }} - {{ astronaut.careerEndDate || "N/A" }}
-</div>
-
-<div *ngIf="astronautDuties !== undefined">
-    @for (duty of astronautDuties; track $index) {
-    <br />
-    <div>
-        {{ duty.id }}<br />
-        {{ duty.personId }}<br />
-        {{ duty.rank }}<br />
-        {{ duty.dutyTitle }}<br />
-        {{ duty.dutyStartDate }}<br />
-        {{ duty.dutyEndDate }}<br />
+@if (astronaut !== undefined && astronaut !== null) {
+<div class="dutyWrapper">
+    <div *ngIf="astronautDuties !== undefined">
+        @for (duty of astronautDuties; track $index) {
+        <div class="dutyList" [ngClass]="$index % 2 === 0 ? 'even' : 'odd'">
+            <span>{{ duty.rank }}</span>
+            <span>{{ duty.dutyTitle }}</span>
+            <span>
+                <span>Duty State Date:</span><span>{{ duty.dutyStartDate | date: 'MM/dd/yyyy' }}</span>
+                @if (duty.dutyEndDate !== undefined && duty.dutyEndDate !== null) {
+                <span>Duty End Date:</span><span>{{ duty.dutyEndDate | date: 'MM/dd/yyyy' }}</span>
+                }
+            </span>
+        </div>
+        }
     </div>
-    }
 </div>
+}
