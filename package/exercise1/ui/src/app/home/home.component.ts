@@ -16,9 +16,11 @@ import { AstronautDutyDto } from '../models/astronaut-duty-dto.model';
 })
 export class HomeComponent {
   astronautService: AstronautService = inject(AstronautService);
+  @Input() searchName?: string;
   @Input() newAstronaut: Astronaut = new Astronaut();
   @Input() newAstronautDuty: AstronautDutyDto = new AstronautDutyDto();
 
+  _isChildBusy: boolean = false;
   reloadTable: boolean = false;
   isAddingNewAstronaut: boolean = false;
   isInAddingStep1: boolean = false;
@@ -26,8 +28,22 @@ export class HomeComponent {
 
   constructor() { }
 
+  isChildBusy(busy: boolean): void {
+    this._isChildBusy = busy;
+    if (!busy) {
+      this.reloadTable = false;
+    }
+  }
+
+  searchForAstronaut(): void {
+    this.reloadTable = true;
+  }
+  clearSearch(): void {
+    this.searchName = undefined;
+    this.reloadTable = true;
+  }
+
   addNewAstronaut(): void {
-    console.log(this.newAstronaut.name);
     this.astronautService.createAstronaut(this.newAstronaut)
       .subscribe({
         next: (res) => {
@@ -44,7 +60,6 @@ export class HomeComponent {
   }
 
   addAstronautDuty(): void {
-    console.log(this.newAstronautDuty.name);
     this.astronautService.createAstronautDutyRecord(this.newAstronautDuty)
       .subscribe({
         next: (res) => {
@@ -66,7 +81,6 @@ export class HomeComponent {
   hideNewAstronautForm(): void {
     this.isAddingNewAstronaut = false;
   }
-
   clearAstronautForm(): void {
     this.newAstronaut = new Astronaut();
   }

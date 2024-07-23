@@ -2,3 +2,32 @@
 body {
     font-family: Inter, sans serif;
 }
+
+button {
+    padding: 10px;
+    border: solid 1px navy;
+    background: navy;
+    color: white;
+    border-radius: 8px;
+    border-style: outset;
+}
+button.primary {
+    background-color: #000032;
+    border-color: #000032;
+    margin: 0 10px 0 10px;
+}
+button.primary:hover {
+    background-color: #265aa6;
+    border-color: #265aa6;
+    margin: 0 10px 0 10px;
+}
+button.secondary {
+    background-color: #f2f2f7;
+    border-color: #f2f2f7;
+    color: black;
+}
+button.secondary:hover {
+    background-color: white;
+    border-color: #f2f2f7;
+    color: black;
+}

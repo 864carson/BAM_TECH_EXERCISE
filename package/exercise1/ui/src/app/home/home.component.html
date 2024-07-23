@@ -1,17 +1,20 @@
-<section>
+<section class="searchSection">
     <form>
-        <input type="text" placeholder="Search by Astronaut Name" />
-        <button class="primary" type="button">Search</button>
-        &nbsp;
-        <button class="primary" type="button" (click)="showNewAstronautForm()">New Astronaut</button>
+        <input id="searchName" name="searchName" type="text" class="searchName" placeholder="Search by Astronaut Name"
+            [(ngModel)]="searchName" />
+        <button class="primary" type="button" (click)="searchForAstronaut()">Search</button>
+        <button class="secondary" type="button" (click)="clearSearch()">Clear</button>
+        <button class="primary right" type="button" (click)="showNewAstronautForm()">New Astronaut</button>
     </form>
 </section>
 
 @if (isAddingNewAstronaut) {
 <br />
 Overview / instructions
-<div [style]="isInAddingStep1 ? 'width:10%;background-color:navy;height:.3em;' : 'width:60%;background-color:navy;height:.3em;'"></div>
-<hr/>
+<div
+    [style]="isInAddingStep1 ? 'width:10%;background-color:navy;height:.3em;' : 'width:60%;background-color:navy;height:.3em;'">
+</div>
+<hr />
 @if (isInAddingStep1) {
 Step 1 of 2
 <form>
@@ -22,10 +25,11 @@ Step 1 of 2
 </form>
 }
 @if (isInAddingStep2) {
-Step 2 of 2<br/>
+Step 2 of 2<br />
 Add a duty record for {{ newAstronaut.name }}
 <form>
-    <input id="newAstronautDutyName" name="newAstronautDutyName" type="hidden" [(ngModel)]="newAstronautDuty.name" disabled /><br />
+    <input id="newAstronautDutyName" name="newAstronautDutyName" type="hidden" [(ngModel)]="newAstronautDuty.name"
+        disabled /><br />
     <input id="newAstronautDutyRank" name="newAstronautDutyRank" type="text" placeholder="Astronaut Rank"
         [(ngModel)]="newAstronautDuty.rank" /><br />
     <input id="newAstronautDutyTitle" name="newAstronautDutyTitle" type="text" placeholder="Astronaut Duty Title"
@@ -39,6 +43,7 @@ Add a duty record for {{ newAstronaut.name }}
 } @else {
 <br />
 <section>
-    <app-astronaut-results [reloadTable]="reloadTable"></app-astronaut-results>
+    <app-astronaut-results [reloadTable]="reloadTable" [searchName]="searchName"
+        (isBusy)="isChildBusy($event)"></app-astronaut-results>
 </section>
 }

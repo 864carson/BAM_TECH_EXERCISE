@@ -18,6 +18,8 @@ export class AstronautResultsComponent implements OnChanges {
   astronautService: AstronautService = inject(AstronautService);
   @Input() newAstronautDuty: AstronautDutyDto = new AstronautDutyDto();
   @Input() reloadTable: boolean = false;
+  @Input() searchName?: string;
+  @Output() isBusy = new EventEmitter<boolean>();
   @Output() astronautDutyAdded = new EventEmitter<number>();
 
   newAstronautDutyFormVisible: boolean = false;
@@ -30,53 +32,77 @@ export class AstronautResultsComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges) {
     for (let propName in changes) {
-      if (propName === "reloadTable" && JSON.stringify(changes[propName].currentValue) === "true") {
-        this.loadAllAstronauts();
+      if (propName !== "reloadTable") {
         break;
       }
+
+      if (JSON.stringify(changes[propName].currentValue) === "true") {
+        this.loadAllAstronauts();
+      }
+      break;
     }
   }
 
   loadAllAstronauts(): void {
-    let self = this;
-    this.astronautService.getAllAstronauts()
-      .subscribe({
-        next: (res) => {
-          console.log(res);
-          self.astronautResultList = res.people;
-        },
-        error: (e) => console.error(e)
-      });
+    this.isBusy.emit(true);
+    if (this.searchName === null || this.searchName === undefined) {
+      this.astronautService.getAllAstronauts()
+        .subscribe({
+          next: (res) => {
+            this.astronautResultList = res.people;
+          },
+          error: (e) => console.error(e),
+          complete: () => this.isBusy.emit(false)
+        });
+    } else {
+      console.log(`Searching for: ${this.searchName}`);
+      this.astronautService.getAstronautByName(encodeURIComponent(this.searchName))
+        .subscribe({
+          next: (res) => {
+            console.log(res);
+            this.astronautResultList = [];
+            this.astronautResultList.push(res.person!);
+          },
+          error: (e) => {
+            if (e.status === 404) {
+              alert(e.error.message);
+            } else {
+              console.error(e);
+            }
+          },
+          complete: () => this.isBusy.emit(false)
+        });
+    }
   }
 
   addAstronautDuty(): void {
-    let self = this;
-    console.log(this.newAstronautDuty.name);
+    this.isBusy.emit(true);
     this.astronautService.createAstronautDutyRecord(this.newAstronautDuty)
       .subscribe({
         next: (res) => {
           console.log(res);
           this.hideNewAstronautDutyForm();
 
-          self.loadAllAstronauts();
-          self.loadDetails(self.newAstronautDuty.name);
+          this.loadAllAstronauts();
+          this.loadDetails(this.newAstronautDuty.name);
           this.astronautDutyAdded.emit(res.id);
         },
-        error: (e) => console.error(e)
+        error: (e) => console.error(e),
+        complete: () => this.isBusy.emit(false)
       });
   }
 
   loadDetails(name?: string): void {
-    let self = this;
-    console.log("loadDetails(" + name + ")");
     if (name === null || name === undefined) return;
+    this.isBusy.emit(true);
     this.astronautService.getAstronautByName(encodeURIComponent(name))
       .subscribe({
         next: (res) => {
           console.log(res);
-          self.selectedAstronaut = res.person;
+          this.selectedAstronaut = res.person;
         },
-        error: (e) => console.error(e)
+        error: (e) => console.error(e),
+        complete: () => this.isBusy.emit(false)
       });
   }
 
@@ -91,7 +117,6 @@ export class AstronautResultsComponent implements OnChanges {
   hideNewAstronautDutyForm(): void {
     this.newAstronautDutyFormVisible = false;
   }
-
   clearAstronautDutyForm(): void {
     this.newAstronautDuty = new AstronautDutyDto();
   }
