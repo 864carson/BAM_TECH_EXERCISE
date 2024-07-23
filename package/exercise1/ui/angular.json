@@ -27,9 +27,18 @@
               }
             ],
             "styles": [
+              "node_modules/datatables.net-dt/css/dataTables.dataTables.min.css",
+              "node_modules/datatables.net-responsive-dt/css/responsive.dataTables.min.css",
+              "node_modules/datatables.net-select-dt/css/select.dataTables.min.css",
               "src/styles.css"
             ],
-            "scripts": [],
+            "scripts": [
+              "node_modules/jquery/dist/jquery.min.js",
+              "node_modules/datatables.net/js/dataTables.min.js",
+              "node_modules/datatables.net-dt/js/dataTables.dataTables.min.js",
+              "node_modules/datatables.net-responsive/js/dataTables.responsive.min.js",
+              "node_modules/datatables.net-select/js/dataTables.select.min.js"
+            ],
             "server": "src/main.server.ts",
             "prerender": true,
             "ssr": {

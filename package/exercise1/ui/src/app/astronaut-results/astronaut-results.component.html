@@ -1,31 +1,4 @@
-<table style="width: 100%;">
-    <thead>
-        <tr>
-            <th scope="col">Astronaut</th>
-            <th scope="col">Rank</th>
-            <th scope="col">Duty Title</th>
-            <th scope="col">Career Start Date</th>
-            <th scope="col">Career End Date</th>
-            <th scope="col"></th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr *ngFor="let astronaut of astronautResultList; let i = index">
-            <td [style]="i % 2 === 0 ? 'background-color: lightgrey' : 'background-color: white'"
-                (click)="loadDetails(astronaut.name)">{{ astronaut.name }}</td>
-            <td [style]="i % 2 === 0 ? 'background-color: lightgrey' : 'background-color: white'"
-                (click)="loadDetails(astronaut.name)">{{ astronaut.currentRank }}</td>
-            <td [style]="i % 2 === 0 ? 'background-color: lightgrey' : 'background-color: white'"
-                (click)="loadDetails(astronaut.name)">{{ astronaut.currentDutyTitle }}</td>
-            <td [style]="i % 2 === 0 ? 'background-color: lightgrey' : 'background-color: white'"
-                (click)="loadDetails(astronaut.name)">{{ astronaut.careerStartDate | date: 'MM/dd/yyyy' }}</td>
-            <td [style]="i % 2 === 0 ? 'background-color: lightgrey' : 'background-color: white'"
-                (click)="loadDetails(astronaut.name)">{{ astronaut.careerEndDate | date: 'MM/dd/yyyy' }}</td>
-            <td [style]="i % 2 === 0 ? 'background-color: lightgrey' : 'background-color: white'"><button
-                    class="secondary" type="button" (click)="showNewAstronautDutyForm(astronaut)">Add</button></td>
-        </tr>
-    </tbody>
-</table>
+<table datatable [dtOptions]="dtOptions" class="row-border hover" data-page-length='5'></table>
 
 <div class="detailsAndDutyFormWrapper">
     <div style="width: 50%; float: left;">
