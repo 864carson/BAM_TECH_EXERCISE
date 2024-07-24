@@ -89,7 +89,6 @@ public class CreateAstronautDutyPreProcessor : IRequestPreProcessor<CreateAstron
         }
 
         // Verify no duty for this astronaut matches the specified title and start date.
-        // As the logic is written below, this SHOULD ALWAYS BE NULL due to the start date being a timestamp.
         // Rule #3) A Person will only ever hold one current Astronaut Duty Title, Start Date, and Rank at a time.
         AstronautDuty? verifyNoPreviousDuty = _stargateRepository.GetAstronautDutyByIdTitleStartDateAsync(
             person.Id,

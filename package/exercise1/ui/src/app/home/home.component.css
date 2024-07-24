@@ -16,7 +16,7 @@ button {
     font-weight: 500;
     padding: 20px 0 20px 20px;
     margin: -12px 0 -17px 0;
-    margin-bottom: 0;
+    margin-bottom: 20px;
     background-color: white;
     background-position: 70%;
     background-size: cover;
@@ -75,6 +75,9 @@ button {
     justify-content: center;
     padding: 15px 0;
 }
+.step1 > .controlWrapper {
+    padding-top: 30px;
+}
 .step1 > .controlWrapper > label, .step2 > .controlWrapper > label {
     margin: 0 0 -9px 13px;
     background-color: white;
@@ -84,6 +87,9 @@ button {
 .step1 > .actions, .step2 > .actions {
     display: flex;
     flex-direction: row;
+}
+.step1 > .actions > button:first-child, .step2 > .actions > button:first-child {
+    margin: 0 10px 0 0;
 }
 
 .instructions {
@@ -154,4 +160,62 @@ button {
     display: flex;
     flex-flow: row;
     justify-content: center;
+}
+
+.dutyWrapper {
+    text-align: center;
+}
+
+.listHeader {
+    font-size: large;
+}
+
+.dutyList {
+    display: inline-block;
+    width: 100%;
+    padding: 5px 0 10px 20px;
+    text-align: left;
+}
+
+.dutyList:not(:last-child) {
+    border-bottom: double;
+}
+
+.dutyList>span:first-child {
+    display: inline-block;
+    font-size: x-large;
+    font-weight: bold;
+    color: #E4002B;
+}
+
+.dutyList>span:nth-child(2) {
+    display: table-cell;
+    width: 35%;
+    min-width: 150px;
+    font-size: larger;
+    font-weight: 400;
+    padding-right: 50px;
+    color: #0032A0;
+}
+
+.dutyList>span:last-child {
+    display: table-cell;
+    text-align: left;
+    font-size: large;
+    font-weight: normal;
+    color: gray;
+}
+
+.dutyList>span:last-child>span:first-child {
+    font-size: small;
+    padding-right: 4px;
+}
+
+.dutyList>span:last-child>span:nth-child(3) {
+    font-size: small;
+    padding: 0 4px 0 20px;
+}
+
+.dutyList.odd {
+    background-color: lightgrey;
 }

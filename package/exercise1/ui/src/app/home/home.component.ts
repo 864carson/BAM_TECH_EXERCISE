@@ -1,7 +1,6 @@
 import { Component, inject, Input, ViewChild, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, DatePipe } from '@angular/common';
-import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { DataTablesModule } from 'angular-datatables';
 import { DataTableDirective } from 'angular-datatables';
 import { Subject } from 'rxjs';
@@ -9,6 +8,7 @@ import { Astronaut } from '../models/astronaut.model';
 import { AstronautService } from '../services/astronaut-service/astronaut.service';
 import { AstronautDutyDto } from '../models/astronaut-duty-dto.model';
 import { AstronautDetailsComponent } from '../astronaut-details/astronaut-details.component';
+import { AstronautDuty } from '../models/astronaut-duty.model';
 
 @Component({
   selector: 'app-home',
@@ -18,13 +18,10 @@ import { AstronautDetailsComponent } from '../astronaut-details/astronaut-detail
   styleUrl: './home.component.css'
 })
 export class HomeComponent implements AfterViewInit, OnDestroy, OnInit {
-  router: Router = inject(Router);
-  activatedRoute: ActivatedRoute = inject(ActivatedRoute);
   astronautService: AstronautService = inject(AstronautService);
   @Input() newAstronaut: Astronaut = new Astronaut();
   @Input() newAstronautDuty: AstronautDutyDto = new AstronautDutyDto();
 
-  routeSubscription: any;
   datePipe: DatePipe = new DatePipe('en-US');
 
   @ViewChild(DataTableDirective, { static: false })
@@ -35,21 +32,14 @@ export class HomeComponent implements AfterViewInit, OnDestroy, OnInit {
   newAstronautDutyFormVisible: boolean = false;
   astronautResultList: Astronaut[] = [];
   selectedAstronaut?: Astronaut;
+  astronautDuties?: AstronautDuty[];
 
   isAddingNewAstronaut: boolean = false;
   isInAddingStep1: boolean = false;
   isInAddingStep2: boolean = false;
   skipStep2: boolean = false;
 
-  constructor() {
-    // this.router.routeReuseStrategy.shouldReuseRoute = () => false;
-    this.routeSubscription = this.router.events.subscribe((event) => {
-      if (event instanceof NavigationEnd) {
-         // Trick the Router into believing it's last link wasn't previously loaded
-         this.router.navigated = false;
-      }
-    });
-  }
+  constructor() { }
 
   ngOnInit(): void {
     this.createAndLoadTable();
@@ -61,10 +51,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy, OnInit {
 
   ngOnDestroy(): void {
     if (this.dtTrigger) {
-    this.dtTrigger.unsubscribe();
-    }
-    if (this.routeSubscription) {
-      this.routeSubscription.unsubscribe();
+      this.dtTrigger.unsubscribe();
     }
   }
 
@@ -126,8 +113,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy, OnInit {
       .subscribe({
         next: (res) => {
           if (this.skipStep2) {
-            this.hideNewAstronautForm();
-            this.reloadAstronautTable();
+            this.cancelNewAstronautProcess();
           } else {
             this.newAstronautDuty.name = this.newAstronaut.name;
             this.newAstronautDuty.dutyStartDate = this.datePipe.transform(new Date(), "MM/dd/yyyy")!;
@@ -157,25 +143,44 @@ export class HomeComponent implements AfterViewInit, OnDestroy, OnInit {
     this.astronautService.createAstronautDutyRecord(this.newAstronautDuty)
       .subscribe({
         next: (res) => {
-          this.hideNewAstronautForm();
-          this.reloadAstronautTable();
+          this.cancelNewAstronautProcess();
         },
         error: (e) => console.error(e)
       });
   }
 
+  cancelNewAstronautProcess(): void {
+    this.hideNewAstronautForm();
+    this.reloadAstronautTable();
+  }
+
   reloadAstronautTable(): void {
+    console.info("reloadAstronautTable()");
     if (this.dtElement?.dtInstance === undefined) {
-      this.router.navigate([this.router.url]);
+      console.info("dtInstance undefined, reloading...");
+      window.location.reload();
       return;
     };
 
+    console.info("dtInstance NOT undefined, refreshing the table...");
     this.dtElement.dtInstance.then(dtInstance => {
       // Destroy the table first
       dtInstance.destroy();
       // Call the dtTrigger to rerender again
       this.dtTrigger.next(null);
     });
+  }
+
+  loadDutyDetails(name?: string) {
+    if (name === null || name === undefined) return;
+    this.astronautService.getAstronautHistoryByName(encodeURIComponent(name))
+      .subscribe({
+        next: (res) => {
+          console.log(res);
+          this.astronautDuties = res.astronautDuties.sort((a: AstronautDuty, b: AstronautDuty) => a.id! - b.id!).reverse();
+        },
+        error: (e) => console.error(e)
+      });
   }
 
   addAstronautDuty(): void {
@@ -191,25 +196,12 @@ export class HomeComponent implements AfterViewInit, OnDestroy, OnInit {
     this.astronautService.createAstronautDutyRecord(this.newAstronautDuty)
       .subscribe({
         next: (res) => {
-          // this.hideNewAstronautDutyForm();
           const astronautName: string = this.newAstronautDuty.name!;
           this.resetAstronautDutyForm();
+          this.selectedAstronaut = undefined;
 
           this.reloadAstronautTable();
-          this.loadDetails(astronautName);
-        },
-        error: (e) => console.error(e),
-      });
-  }
-
-  loadDetails(name?: string): void {
-
-    if (name === null || name === undefined) return;
-    this.astronautService.getAstronautByName(encodeURIComponent(name))
-      .subscribe({
-        next: (res) => {
-          console.log(res);
-          this.selectedAstronaut = res.person;
+          this.loadDutyDetails(astronautName);
         },
         error: (e) => console.error(e),
       });
@@ -218,7 +210,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy, OnInit {
   showNewAstronautDutyForm(astronaut: Astronaut, isSelected: boolean): void {
     if (!isSelected) return;
 
-    this.loadDetails(astronaut.name);
+    this.selectedAstronaut = astronaut;
+    this.loadDutyDetails(astronaut.name);
     this.resetAstronautDutyForm();
 
     this.newAstronautDuty.name = astronaut.name;

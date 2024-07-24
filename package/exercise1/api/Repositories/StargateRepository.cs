@@ -150,8 +150,10 @@ public class StargateRepository : IStargateRepository
             throw new ArgumentNullException(nameof(personId));
         }
 
+        // Since I'm not validating the dates in any way, they can be entered all out of order.
+        // Therefore, I'm sorting by id instead of duty start date.
         return await _context.AstronautDuties
-            .OrderByDescending(x => x.DutyStartDate)
+            .OrderByDescending(x => x.Id)
             .Where(x => x.PersonId == personId)
             .ToListAsync(cancellationToken);
     }
@@ -185,8 +187,10 @@ public class StargateRepository : IStargateRepository
             throw new ArgumentNullException(nameof(id));
         }
 
+        // Since I'm not validating the dates in any way, they can be entered all out of order.
+        // Therefore, I'm sorting by id instead of duty start date.
         return await _context.AstronautDuties
-            .OrderByDescending(x => x.DutyStartDate)
+            .OrderByDescending(x => x.Id)
             .FirstOrDefaultAsync(x => x.PersonId == id, cancellationToken);
     }
 
@@ -294,8 +298,9 @@ public class StargateRepository : IStargateRepository
             throw new ArgumentNullException(nameof(newDetail));
         }
 
-        currentDetail.CurrentDutyTitle = newDetail.DutyTitle;
         currentDetail.CurrentRank = newDetail.Rank;
+        currentDetail.CurrentDutyTitle = newDetail.DutyTitle;
+        currentDetail.CareerStartDate = newDetail.DutyStartDate;
         return await _context.SaveChangesAsync(cancellationToken);
     }
 
