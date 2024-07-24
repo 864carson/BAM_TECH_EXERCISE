@@ -9,6 +9,7 @@ import { AstronautService } from '../services/astronaut-service/astronaut.servic
 import { AstronautDutyDto } from '../models/astronaut-duty-dto.model';
 import { AstronautDuty } from '../models/astronaut-duty.model';
 import { ErrorService } from '../services/error-service/error.service';
+import { DateUtils } from '../../utils/dateUtils';
 
 @Component({
   selector: 'app-home',
@@ -30,6 +31,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy, OnInit {
   @Input() newAstronautDuty: AstronautDutyDto = new AstronautDutyDto();
 
   datePipe: DatePipe = new DatePipe('en-US');
+  dateUtils: DateUtils = new DateUtils();
 
   @ViewChild(DataTableDirective, { static: false })
   dtElement!: DataTableDirective;
@@ -47,6 +49,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy, OnInit {
   skipStep2: boolean = false;
 
   constructor() { }
+
+  //#region [ Method Overrides ]
 
   /**
    * Calls the createAndLoadTable method when the component is initialized.
@@ -70,6 +74,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy, OnInit {
       this.dtTrigger.unsubscribe();
     }
   }
+
+  //#endregion
 
   /**
    * Sets up a DataTable with specific options and loads astronaut data into the table.
@@ -141,7 +147,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy, OnInit {
             this.cancelNewAstronautProcess();
           } else {
             this.newAstronautDuty.name = this.newAstronaut.name;
-            this.newAstronautDuty.dutyStartDate = this.datePipe.transform(new Date(), "MM/dd/yyyy")!;
+            this.newAstronautDuty.dutyStartDate = this.dateUtils.formatDateToShortDateFormat(new Date());
             this.isInAddingStep1 = false;
             this.isInAddingStep2 = true;
           }
@@ -168,7 +174,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy, OnInit {
    */
   addAstronautDuty_NewAstronautProcess(): void {
     try {
-      const newDutyDate: string = new Date(this.newAstronautDuty.dutyStartDate!).toISOString();
+      const newDutyDate: string = this.dateUtils.convertShortDateStringToISOString(this.newAstronautDuty.dutyStartDate!);
       this.newAstronautDuty.dutyStartDate = newDutyDate;
     }
     catch (ex) {
@@ -244,7 +250,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy, OnInit {
    */
   addAstronautDuty(): void {
     try {
-      const newDutyDate: string = new Date(this.newAstronautDuty.dutyStartDate!).toISOString();
+      const newDutyDate: string = this.dateUtils.convertShortDateStringToISOString(this.newAstronautDuty.dutyStartDate!);
       this.newAstronautDuty.dutyStartDate = newDutyDate;
     }
     catch (ex) {
@@ -301,7 +307,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy, OnInit {
    */
   resetAstronautDutyForm(): void {
     this.newAstronautDuty = new AstronautDutyDto();
-    this.newAstronautDuty.dutyStartDate = this.datePipe.transform(new Date(), "MM/dd/yyyy")!;
+    this.newAstronautDuty.dutyStartDate = this.dateUtils.formatDateToShortDateFormat(new Date());
   }
 
   /**
