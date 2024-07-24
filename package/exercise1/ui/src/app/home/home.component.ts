@@ -74,5 +74,6 @@ export class HomeComponent {
   }
   clearAstronautForm(): void {
     this.newAstronaut = new Astronaut();
+    this.newAstronautDuty = new AstronautDutyDto();
   }
 }

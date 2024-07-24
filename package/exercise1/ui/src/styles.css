@@ -20,13 +20,18 @@ body {
     font-family: Inter, sans serif;
 }
 
-input[type="text"] {
+input[type="text"],
+div.dt-container .dt-search input {
     border: solid 1px navy;
     padding: 10px;
     border-radius: 8px;
     margin-right: 4px;
     display: inline-block;
     width: 30%;
+}
+
+div.dt-container .dt-search input {
+    width: auto;
 }
 
 button {
@@ -36,32 +41,39 @@ button {
     color: white;
     border-radius: 8px;
     border-style: outset;
+    cursor: pointer;
 }
+
 button.primary {
     background-color: #000032;
     border-color: #000032;
     margin: 0 10px 0 10px;
 }
+
 button.primary:hover {
     background-color: #265aa6;
     border-color: #265aa6;
     margin: 0 10px 0 10px;
 }
+
 button.secondary {
     background-color: #f2f2f7;
     border-color: #f2f2f7;
     color: black;
 }
+
 button.secondary:hover {
     background-color: white;
     border-color: white;
     color: black;
 }
+
 button.grey {
     background-color: darkgrey;
     border-color: darkgrey;
     color: black;
 }
+
 button.grey:hover {
     background-color: white;
     border-color: white;
@@ -69,9 +81,38 @@ button.grey:hover {
 }
 
 /* Override the datatables.net styles */
-table.dataTable > tbody > tr.selected > * {
+div.dt-container {
+    width: 95%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.dt-search {
+    display: grid;
+}
+
+.dt-search>label:first-child {
+    margin: 0 0 -9px 13px;
+    background-color: white;
+    z-index: 1;
+    width: min-content;
+}
+
+div.dt-container select.dt-input {
+    border: solid 1px navy;
+    border-radius: 8px;
+    padding: 6px 4px;
+}
+
+table.dataTable>tbody>tr {
+    cursor: pointer;
+}
+
+table.dataTable>tbody>tr.selected>* {
     box-shadow: inset 0 0 0 9999px rgb(0, 0, 50, 1);
 }
-table.dataTable.hover > tbody > tr.selected:hover > *, table.dataTable.display > tbody > tr.selected:hover > * {
+
+table.dataTable.hover>tbody>tr.selected:hover>*,
+table.dataTable.display>tbody>tr.selected:hover>* {
     box-shadow: inset 0 0 0 9999px rgb(38, 90, 166, 1) !important;
 }
