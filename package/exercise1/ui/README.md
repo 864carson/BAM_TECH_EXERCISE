@@ -25,23 +25,3 @@ Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To u
 ## Further help
 
 To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
-
-<hr/>
-
-## The UI is expected to do the following:
-- Display the progress of the process and the results in a visually sophisticated and appealing manner.
-
-- BAM colors
-  - Button: very dark blue: RGB 0 0 50 (#000032) with white font
-  - Button hover: primary light blue: RGB 38 90 166 (#265aa6) with white font
-- BAM Typography
-  - Inter, sans serif
-- NASA logo/icon
-  - 37x37px
-- NASA colors
-  - NASA Blue: #0032A0
-  - NASA Red: #E4002B
-- NASA Typography
-  - Helvetica, Garamond
-  - Inter, Public Sans, DM MONO
-  - Agency name should always be a sans-serif typeface
