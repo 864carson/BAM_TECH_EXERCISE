@@ -16,7 +16,6 @@ import { AstronautDutyDto } from '../models/astronaut-duty-dto.model';
 })
 export class HomeComponent {
   astronautService: AstronautService = inject(AstronautService);
-  @Input() searchName?: string;
   @Input() newAstronaut: Astronaut = new Astronaut();
   @Input() newAstronautDuty: AstronautDutyDto = new AstronautDutyDto();
 
@@ -33,14 +32,6 @@ export class HomeComponent {
     if (!busy) {
       this.reloadTable = false;
     }
-  }
-
-  searchForAstronaut(): void {
-    this.reloadTable = true;
-  }
-  clearSearch(): void {
-    this.searchName = undefined;
-    this.reloadTable = true;
   }
 
   addNewAstronaut(): void {

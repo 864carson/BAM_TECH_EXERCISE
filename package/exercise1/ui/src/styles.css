@@ -1,6 +1,32 @@
-/* You can add global styles to this file, and also import other style files */
+@media (min-width: 769px) {
+    input[type="text"] {
+        width: 70%;
+    }
+}
+
+@media (min-width: 500px) and (max-width: 768px) {
+    input[type="text"] {
+        width: 70%;
+    }
+}
+
+@media (max-width: 499px) {
+    input[type="text"] {
+        width: 70%;
+    }
+}
+
 body {
     font-family: Inter, sans serif;
+}
+
+input[type="text"] {
+    border: solid 1px navy;
+    padding: 10px;
+    border-radius: 8px;
+    margin-right: 4px;
+    display: inline-block;
+    width: 30%;
 }
 
 button {
@@ -28,7 +54,17 @@ button.secondary {
 }
 button.secondary:hover {
     background-color: white;
-    border-color: #f2f2f7;
+    border-color: white;
+    color: black;
+}
+button.grey {
+    background-color: darkgrey;
+    border-color: darkgrey;
+    color: black;
+}
+button.grey:hover {
+    background-color: white;
+    border-color: white;
     color: black;
 }
 

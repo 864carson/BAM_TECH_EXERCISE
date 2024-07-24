@@ -39,3 +39,22 @@
     font-weight: normal;
     color: gray;
 }
+
+.newDutyForm {
+    text-align: center;
+}
+.newDutyForm > label {
+    font-size: large;
+}
+.newDutyForm > div > input[type="text"] {
+    width: 50%;
+}
+.newDutyForm > div:nth-child(2) {
+    padding-top: 20px;
+}
+.newDutyForm > div:nth-child(3) {
+    padding: 10px 0;
+}
+.newDutyForm > div:last-child {
+    padding: 15px 0;
+}

@@ -1,21 +1,3 @@
-input[type="text"] {
-    border: solid 1px navy;
-    padding: 10px;
-    border-radius: 8px;
-    margin-right: 4px;
-    display: inline-block;
-    width: 30%;
-}
-
-button.right {
-    float: right;
-    margin-right: 20px;
-}
-button.right:hover {
-    float: right;
-    margin-right: 20px;
-}
-
 .searchSection {
     padding: 20px 0 20px 10px;
     margin: -12px 0 -17px 0;
@@ -23,25 +5,4 @@ button.right:hover {
     background-position: 70%;
     background-size: cover;
     background-image: url(https://cdn.prod.website-files.com/624478f6c59fb357d1fda0fc/6261ae5277d5049c8031ea19_footer-left.svg);
-}
-.searchName {
-    max-width: 400px;
-}
-
-@media (min-width: 769px) {
-    input[type="text"] {
-        width: 70%;
-    }
-}
-
-@media (min-width: 500px) and (max-width: 768px) {
-    input[type="text"] {
-        width: 70%;
-    }
-}
-
-@media (max-width: 499px) {
-    input[type="text"] {
-        width: 70%;
-    }
 }

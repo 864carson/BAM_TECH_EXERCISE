@@ -8,6 +8,7 @@
         "Millis",
         "prerender",
         "Starbase",
-        "Stargate"
+        "Stargate",
+        "toggleable"
     ]
 }

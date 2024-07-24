@@ -8,10 +8,10 @@ package/exercise1/api/starbase.db-shm
 package/exercise1/api/starbase.db-wal
 
 # Compiled output
-/dist
-/tmp
-/out-tsc
-/bazel-out
+dist/
+tmp/
+out-tsc/
+bazel-out/
 
 # Node
 node_modules
@@ -40,10 +40,10 @@ yarn-error.log
 .angular
 .sass-cache/
 /connect.lock
-/coverage
+coverage/
 /libpeerconnection.log
 testem.log
-/typings
+typings/
 
 # System files
 .DS_Store
