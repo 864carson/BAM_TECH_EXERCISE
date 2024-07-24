@@ -47,37 +47,41 @@ button {
 button.primary {
     background-color: #000032;
     border-color: #000032;
-    margin: 0 10px 0 10px;
+    margin: 0 10px;
 }
 
 button.primary:hover {
     background-color: #265aa6;
     border-color: #265aa6;
-    margin: 0 10px 0 10px;
+    margin: 0 10px;
 }
 
 button.secondary {
     background-color: #f2f2f7;
     border-color: #f2f2f7;
     color: black;
+    margin: 0 10px;
 }
 
 button.secondary:hover {
     background-color: white;
     border-color: white;
     color: black;
+    margin: 0 10px;
 }
 
 button.grey {
     background-color: darkgrey;
     border-color: darkgrey;
     color: black;
+    margin: 0 10px;
 }
 
 button.grey:hover {
     background-color: white;
     border-color: white;
     color: black;
+    margin: 0 10px;
 }
 
 /* Override the datatables.net styles */

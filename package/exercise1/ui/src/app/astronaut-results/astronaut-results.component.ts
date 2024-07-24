@@ -37,7 +37,6 @@ export class AstronautResultsComponent implements AfterViewInit, OnDestroy, OnIn
   selectedAstronaut?: Astronaut;
 
   constructor() {
-    // this.loadAllAstronauts();
   }
 
   ngOnInit(): void {
@@ -124,61 +123,6 @@ export class AstronautResultsComponent implements AfterViewInit, OnDestroy, OnIn
       this.dtTrigger.next(null);
     });
   }
-
-  // loadAllAstronauts(): void {
-  //   this.isBusy.emit(true);
-  //   this.dtOptions = {
-  //     processing: true,
-  //     lengthMenu: [5, 10, 25],
-  //     ajax: (dataTableParameters: any, callback: any) => {
-  //       this.astronautService.getAllAstronauts()
-  //         .subscribe({
-  //           next: (res) => {
-  //             this.astronautResultList = res.people;
-  //             callback({
-  //               recordsTotal: res.people.length,
-  //               recordsFiltered: res.people.length,
-  //               data: res.people
-  //             })
-  //           },
-  //           error: (e) => console.error(e),
-  //           complete: () => this.isBusy.emit(false)
-  //         });
-  //     },
-  //     columns: [
-  //       { title: "Astronaut", data: "name" },
-  //       { title: "Rank", data: "currentRank" },
-  //       {
-  //         title: "Duty Title",
-  //         data: "currentDutyTitle",
-  //         render: (data: any, type: string, row: any, meta: object) => {
-  //           return row.currentDutyTitle;
-  //         }
-  //       },
-  //       { title: "Career Start Date", data: "careerStartDate", searchable: false, ngPipeInstance: this.datePipe, ngPipeArgs: ['MM/dd/yyyy'] },
-  //       { title: "Career End Date", data: "careerEndDate", searchable: false, ngPipeInstance: this.datePipe, ngPipeArgs: ['MM/dd/yyyy'] }
-  //     ],
-  //     rowCallback: (row: Node, data: any[] | Object, index: number) => {
-  //       // Unbind first in order to avoid any duplicate handler
-  //       $('td', row).off('click');
-  //       $('td', row).on('click', () => {
-  //         this.showNewAstronautDutyForm(<Astronaut>data, !row.firstChild?.parentElement?.classList.contains('selected'));
-  //       });
-  //       return row;
-  //     },
-  //     select: {
-  //       style: 'single',
-  //       info: false,
-  //       toggleable: false
-  //     },
-  //     language: {
-  //       entries: {
-  //         _: 'astronauts',
-  //         1: 'astronaut'
-  //       }
-  //     }
-  //   }
-  // }
 
   addAstronautDuty(): void {
     try {

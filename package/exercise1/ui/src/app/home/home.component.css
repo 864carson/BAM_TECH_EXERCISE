@@ -17,9 +17,62 @@
 .newAstronautWrapper {
     padding: 10px 0 0 20px;
 }
-.step1 {
-    text-align: center;
+.newAstronautWrapper {
+    width: 100%;
 }
-.step2 {
-    text-align: center;
+input[type="text"] {
+    width: 250px;
+    background-color: white;
+}
+
+.stepWrapper {
+    display: flex;
+}
+.stepMenu {
+    width: 25%;
+    margin: 10px -20px 0 20px;
+}
+.stepMenu > div:first-child {
+    padding-bottom: 10px;
+}
+.stepMenu > .currentStep {
+    color: #0032A0;
+    font-size: large;
+    font-weight: bold;
+}
+.stepMenu > .otherStep {
+    color: lightgrey;
+    font-size: medium;
+    font-weight: normal;
+}
+
+.stepActivity {
+    width: 75%;
+    margin: 10px 20px 0 -20px;
+    display: flex;
+}
+
+.step1, .step2 {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+.step1 > label, .step2 > label {
+    font-size: large;
+    font-weight: 500;
+}
+.step1 > .controlWrapper, .step2 > .controlWrapper {
+    display: grid;
+    justify-content: center;
+    padding: 15px 0;
+}
+.step1 > .controlWrapper > label, .step2 > .controlWrapper > label {
+    margin: 0 0 -9px 13px;
+    background-color: white;
+    z-index: 1;
+    width: max-content;
+}
+.step1 > .actions, .step2 > .actions {
+    display: flex;
+    flex-direction: row;
 }

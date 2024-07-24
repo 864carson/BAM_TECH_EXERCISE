@@ -7,42 +7,56 @@
     <div class="newAstronautWrapper">
         <p>Adding a new astronaut is a quick 2-step process.</p>
 
-        <div class="progressBar">
-            <label>Progress</label>
-            <div
-                [style]="isInAddingStep1 ? 'width:10%;background-color:navy;height:.3em;' : 'width:60%;background-color:navy;height:.3em;'">
+        <div class="stepWrapper">
+            <div class="stepMenu">
+                <div [ngClass]="isInAddingStep1 ? 'currentStep' : 'otherStep'">
+                    Step 1: Add a new astronaut
+                </div>
+                <div [ngClass]="isInAddingStep2 ? 'currentStep' : 'otherStep'">
+                    Step 2: Add a duty record
+                </div>
             </div>
-            <!-- <label>Step 1 of 2</label> -->
-        </div>
+            <div class="stepActivity">
+                <div class="step1" *ngIf="isInAddingStep1">
+                    <label>Enter the new astronaut's name. Click the <i>Add Duty Record</i> button to add a duty record and return to the astronaut table.</label>
+                    <div class="controlWrapper">
+                        <label>Astronaut Name</label>
+                        <input id="newAstronautName" name="newAstronautName" type="text" placeholder="Astronaut Name"
+                            [(ngModel)]="newAstronaut.name" />
+                    </div>
+                    <div class="actions">
+                        <button class="primary" type="button" (click)="addNewAstronautThenDuty()">Add Astronaut</button>
+                        <!-- <button class="primary" type="button" (click)="addNewAstronaut()">Add Astronaut and Finish</button> -->
+                        <button class="secondary" type="button" (click)="hideNewAstronautForm()">Cancel</button>
+                    </div>
+                </div>
 
-        @if (isInAddingStep1) {
-        <div class="step1">
-            <form>
-                <input id="newAstronautName" name="newAstronautName" type="text" placeholder="Astronaut Name"
-                    [(ngModel)]="newAstronaut.name" />
-                <button class="primary" type="button" (click)="addNewAstronaut()">Add</button>
-                <button class="secondary" type="button" (click)="hideNewAstronautForm()">Cancel</button>
-            </form>
+                <div class="step2" *ngIf="isInAddingStep2">
+                    <label>Add a duty record for {{ newAstronaut.name }}.  Click the <i>Add Astronaut</i> button to add a duty record.</label>
+                    <input id="newAstronautDutyName" name="newAstronautDutyName" type="hidden" [(ngModel)]="newAstronautDuty.name"
+                        disabled />
+                    <div class="controlWrapper">
+                        <label>Duty Rank</label>
+                        <input id="newAstronautDutyRank" name="newAstronautDutyRank" type="text" placeholder="Astronaut Rank"
+                            [(ngModel)]="newAstronautDuty.rank" />
+                    </div>
+                    <div class="controlWrapper">
+                        <label>Duty Title</label>
+                        <input id="newAstronautDutyTitle" name="newAstronautDutyTitle" type="text" placeholder="Astronaut Duty Title"
+                            [(ngModel)]="newAstronautDuty.dutyTitle" />
+                    </div>
+                    <div class="controlWrapper">
+                        <label>Duty Start Date</label>
+                        <input id="newAstronautDutyStartDate" name="newAstronautDutyStartDate" type="text"
+                            placeholder="Astronaut Duty Start Date" [(ngModel)]="newAstronautDuty.dutyStartDate" />
+                    </div>
+                    <div class="actions">
+                        <button class="primary" type="button" (click)="addAstronautDuty()">Add Duty Record</button>
+                        <button class="secondary" type="button" (click)="hideNewAstronautForm()">Skip</button>
+                    </div>
+                </div>
+            </div>
         </div>
-        }
-
-        @if (isInAddingStep2) {
-        <div class="step2">
-            Add a duty record for {{ newAstronaut.name }}
-            <form>
-                <input id="newAstronautDutyName" name="newAstronautDutyName" type="hidden" [(ngModel)]="newAstronautDuty.name"
-                    disabled /><br />
-                <input id="newAstronautDutyRank" name="newAstronautDutyRank" type="text" placeholder="Astronaut Rank"
-                    [(ngModel)]="newAstronautDuty.rank" /><br />
-                <input id="newAstronautDutyTitle" name="newAstronautDutyTitle" type="text" placeholder="Astronaut Duty Title"
-                    [(ngModel)]="newAstronautDuty.dutyTitle" /><br />
-                <input id="newAstronautDutyStartDate" name="newAstronautDutyStartDate" type="text"
-                    placeholder="Astronaut Duty Start Date" [(ngModel)]="newAstronautDuty.dutyStartDate" /><br />
-                <button class="primary" type="button" (click)="addAstronautDuty()">Add</button>&nbsp;
-                <button class="secondary" type="button" (click)="hideNewAstronautForm()">Cancel</button>
-            </form>
-        </div>
-    }
     </div>
 } @else {
     <section>
