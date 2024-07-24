@@ -79,6 +79,7 @@ There is plenty more work to do on this application to make it production qualit
 * There are no indexes or other constraints in the database (aside from primary and foreign key constraints).
 * Error handling should be improved in the SPA. Currently, they are simply displayed in alerts or in the browser's developer console. Adding toast notifications and inline error messages would create a better UX.
 * There isn't much in the way of logging in the API. The MediatR pipeline transitions are logged to the database, but nothing else is. That would make it more difficult to track down errors in production.
+* There aren't any unit tests in the SPA. There should be the same amount of coverage for SPA unit tests are there is for API unit tests.
 
 ## Unit Test Coverage
 The unit testing coverage requirement was met for the API. The screenshot below shows a `60.9%` branch coverage.
