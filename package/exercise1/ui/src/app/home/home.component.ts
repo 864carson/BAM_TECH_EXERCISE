@@ -7,18 +7,25 @@ import { Subject } from 'rxjs';
 import { Astronaut } from '../models/astronaut.model';
 import { AstronautService } from '../services/astronaut-service/astronaut.service';
 import { AstronautDutyDto } from '../models/astronaut-duty-dto.model';
-import { AstronautDetailsComponent } from '../astronaut-details/astronaut-details.component';
 import { AstronautDuty } from '../models/astronaut-duty.model';
+import { ErrorService } from '../services/error-service/error.service';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, FormsModule, DataTablesModule, AstronautDetailsComponent],
+  imports: [CommonModule, FormsModule, DataTablesModule],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'
 })
+/**
+ * Manages astronaut data and duties, including creating new astronauts and assigning duties,
+ * with DataTable integration for displaying astronaut information.
+ */
 export class HomeComponent implements AfterViewInit, OnDestroy, OnInit {
+  private componentDescriptor: string = "app-home";
+
   astronautService: AstronautService = inject(AstronautService);
+  errorService: ErrorService = inject(ErrorService);
   @Input() newAstronaut: Astronaut = new Astronaut();
   @Input() newAstronautDuty: AstronautDutyDto = new AstronautDutyDto();
 
@@ -41,20 +48,32 @@ export class HomeComponent implements AfterViewInit, OnDestroy, OnInit {
 
   constructor() { }
 
+  /**
+   * Calls the createAndLoadTable method when the component is initialized.
+   */
   ngOnInit(): void {
     this.createAndLoadTable();
   }
 
+  /**
+   * Triggers the DataTables plugin after the view has been initialized.
+   */
   ngAfterViewInit(): void {
     this.dtTrigger.next(null);
   }
 
+  /**
+   * Unsubscribes from a data trigger if it exists.
+   */
   ngOnDestroy(): void {
     if (this.dtTrigger) {
       this.dtTrigger.unsubscribe();
     }
   }
 
+  /**
+   * Sets up a DataTable with specific options and loads astronaut data into the table.
+   */
   createAndLoadTable() {
     this.dtOptions = {
       processing: true,
@@ -70,7 +89,10 @@ export class HomeComponent implements AfterViewInit, OnDestroy, OnInit {
                 data: res.people
               })
             },
-            error: (e) => console.error(e),
+            error: (e) => {
+              alert(e);
+              console.error(e);
+            }
           });
       },
       columns: [
@@ -108,6 +130,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy, OnInit {
     }
   }
 
+  /**
+   * Adds a new astronaut and proceeds to assign duty based on certain conditions.
+   */
   addNewAstronautThenDuty(): void {
     this.astronautService.createAstronaut(this.newAstronaut)
       .subscribe({
@@ -121,22 +146,33 @@ export class HomeComponent implements AfterViewInit, OnDestroy, OnInit {
             this.isInAddingStep2 = true;
           }
         },
-        error: (e) => console.error(e)
+        error: (e) => {
+          this.errorService.handleError(e, this.componentDescriptor);
+        }
       });
   }
 
+  /**
+   * Sets `skipStep2` to true and then calls `addNewAstronautThenDuty`.
+   */
   addNewAstronaut(): void {
     this.skipStep2 = true;
     this.addNewAstronautThenDuty();
   }
 
+  /**
+   * Processes a new astronaut duty by converting the duty start date to ISO string and creating a new
+   * astronaut duty record.
+   * @returns If an error occurs during the date conversion attempt an exception by displaying an alert
+   * with the error message and logging the error to the console. The function will then return.
+   */
   addAstronautDuty_NewAstronautProcess(): void {
     try {
       const newDutyDate: string = new Date(this.newAstronautDuty.dutyStartDate!).toISOString();
       this.newAstronautDuty.dutyStartDate = newDutyDate;
     }
     catch (ex) {
-      console.error(ex);
+      this.errorService.handleError(ex, this.componentDescriptor);
       return;
     }
 
@@ -145,24 +181,30 @@ export class HomeComponent implements AfterViewInit, OnDestroy, OnInit {
         next: (res) => {
           this.cancelNewAstronautProcess();
         },
-        error: (e) => console.error(e)
+        error: (e) => {
+          this.errorService.handleError(e, this.componentDescriptor);
+        }
       });
   }
 
+  /**
+   * Hides the new astronaut form and reloads the astronaut table.
+   */
   cancelNewAstronautProcess(): void {
     this.hideNewAstronautForm();
     this.reloadAstronautTable();
   }
 
+  /**
+   * Checks if a DataTable instance exists, and if so, it refreshes the table by destroying and rerendering it.
+   * Otherwise, the page will be reloaded to accomplish the same end goal of showing the new data in the table.
+   */
   reloadAstronautTable(): void {
-    console.info("reloadAstronautTable()");
     if (this.dtElement?.dtInstance === undefined) {
-      console.info("dtInstance undefined, reloading...");
       window.location.reload();
       return;
     };
 
-    console.info("dtInstance NOT undefined, refreshing the table...");
     this.dtElement.dtInstance.then(dtInstance => {
       // Destroy the table first
       dtInstance.destroy();
@@ -171,25 +213,42 @@ export class HomeComponent implements AfterViewInit, OnDestroy, OnInit {
     });
   }
 
+  /**
+   * Retrieves astronaut duty details by name and sorts them in descending order based on ID.
+   * @param {string} [name] - [optional] Parameter `name` of type string. This function is responsible
+   * for loading duty details for an astronaut based on the provided name. If the `name` parameter is
+   * null or undefined, the function will return early without making any requests. Otherwise, it
+   * @returns If the `name` parameter is null or undefined, the function will return early without
+   * making the API call. If a valid `name` is provided, the function will call the
+   * `getAstronautHistoryByName` method from the `astronautService` to fetch astronaut duty details.
+   * The response data is then sorted by `id` in descending order and stored in the `astronautDuties` variable.
+   */
   loadDutyDetails(name?: string) {
     if (name === null || name === undefined) return;
     this.astronautService.getAstronautHistoryByName(encodeURIComponent(name))
       .subscribe({
         next: (res) => {
-          console.log(res);
           this.astronautDuties = res.astronautDuties.sort((a: AstronautDuty, b: AstronautDuty) => a.id! - b.id!).reverse();
         },
-        error: (e) => console.error(e)
+        error: (e) => {
+          this.errorService.handleError(e, this.componentDescriptor);
+        }
       });
   }
 
+  /**
+   * Adds a new astronaut duty record, converting the duty start date to ISO format, and making API
+   * calls to create the record.
+   * @returns If an error occurs during the date conversion attempt an exception by displaying an alert
+   * with the error message and logging the error to the console. The function will then return.
+   */
   addAstronautDuty(): void {
     try {
       const newDutyDate: string = new Date(this.newAstronautDuty.dutyStartDate!).toISOString();
       this.newAstronautDuty.dutyStartDate = newDutyDate;
     }
     catch (ex) {
-      console.error(ex);
+      this.errorService.handleError(ex, this.componentDescriptor);
       return;
     }
 
@@ -203,10 +262,23 @@ export class HomeComponent implements AfterViewInit, OnDestroy, OnInit {
           this.reloadAstronautTable();
           this.loadDutyDetails(astronautName);
         },
-        error: (e) => console.error(e),
+        error: (e) => {
+          this.errorService.handleError(e, this.componentDescriptor);
+        }
       });
   }
 
+  /**
+   * Displays a form for assigning a new duty to a selected astronaut.
+   * @param {Astronaut} astronaut - The `astronaut` parameter is an object of type `Astronaut`, which
+   * contains information about an astronaut such as their name. In the `showNewAstronautDutyForm`
+   * function, this parameter is used to set the selected astronaut variable.
+   * @param {boolean} isSelected - The `isSelected` parameter is a boolean value that indicates whether
+   * the astronaut has been selected or not. If `isSelected` is `true`, the function proceeds to show a
+   * new astronaut duty form for the selected astronaut.
+   * @returns If the `isSelected` parameter is `false`, the function will return early and not execute
+   * the rest of the code block.
+   */
   showNewAstronautDutyForm(astronaut: Astronaut, isSelected: boolean): void {
     if (!isSelected) return;
 
@@ -217,25 +289,43 @@ export class HomeComponent implements AfterViewInit, OnDestroy, OnInit {
     this.newAstronautDuty.name = astronaut.name;
     this.newAstronautDutyFormVisible = true;
   }
+
+  /**
+   * Sets the visibility of a form for adding a new astronaut duty to false.
+   */
   hideNewAstronautDutyForm(): void {
     this.newAstronautDutyFormVisible = false;
   }
+  /**
+   * Resets the `newAstronautDuty` object and sets the `dutyStartDate` to the current date in MM/dd/yyyy format.
+   */
   resetAstronautDutyForm(): void {
     this.newAstronautDuty = new AstronautDutyDto();
     this.newAstronautDuty.dutyStartDate = this.datePipe.transform(new Date(), "MM/dd/yyyy")!;
   }
 
+  /**
+   * Clears the astronaut form and sets flags to indicate that a new astronaut is being added.
+   */
   showNewAstronautForm(): void {
     this.clearAstronautForm();
     this.isAddingNewAstronaut = true;
     this.isInAddingStep1 = true;
     this.isInAddingStep2 = false;
   }
+
+  /**
+   * Hides the new astronaut form and resets related flags.
+   */
   hideNewAstronautForm(): void {
     this.isAddingNewAstronaut = false;
     this.isInAddingStep1 = false;
     this.skipStep2 = false;
   }
+
+  /**
+   * Resets the newAstronaut and newAstronautDuty objects to their default values.
+   */
   clearAstronautForm(): void {
     this.newAstronaut = new Astronaut();
     this.newAstronautDuty = new AstronautDutyDto();
