@@ -1,0 +1,221 @@
+/* input[type="text"] {
+    width: 250px;
+    background-color: white;
+} */
+input[type="text"] {
+    width: 100%;
+    background-color: #fafafa;
+}
+button {
+    display: flex;
+}
+
+.searchSection {
+    color: white;
+    font-size: large;
+    font-weight: 500;
+    padding: 20px 0 20px 20px;
+    margin: -12px 0 -17px 0;
+    margin-bottom: 20px;
+    background-color: white;
+    background-position: 70%;
+    background-size: cover;
+    background-image: url(https://cdn.prod.website-files.com/624478f6c59fb357d1fda0fc/6261ae5277d5049c8031ea19_footer-left.svg);
+}
+.searchSection > button {
+    display: initial;
+    margin-left: 15px;
+}
+
+.newAstronautWrapper {
+    padding: 10px 0 0 20px;
+}
+.newAstronautWrapper {
+    width: 100%;
+}
+
+.stepWrapper {
+    display: flex;
+}
+.stepMenu {
+    width: 25%;
+    margin: 10px -20px 0 20px;
+}
+.stepMenu > div:first-child {
+    padding-bottom: 10px;
+}
+.stepMenu > .currentStep {
+    color: #0032A0;
+    font-size: large;
+    font-weight: bold;
+}
+.stepMenu > .otherStep {
+    color: lightgrey;
+    font-size: medium;
+    font-weight: normal;
+}
+
+.stepActivity {
+    width: 75%;
+    margin: 10px 20px 0 -20px;
+    display: flex;
+}
+
+.step1, .step2 {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+.step1 > label, .step2 > label {
+    font-size: large;
+    font-weight: 500;
+}
+.step1 > .controlWrapper, .step2 > .controlWrapper {
+    display: grid;
+    justify-content: center;
+    padding: 15px 0;
+}
+.step1 > .controlWrapper {
+    padding-top: 30px;
+}
+.step1 > .controlWrapper > label, .step2 > .controlWrapper > label {
+    margin: 0 0 -9px 13px;
+    background-color: white;
+    z-index: 1;
+    width: max-content;
+}
+.step1 > .actions, .step2 > .actions {
+    display: flex;
+    flex-direction: row;
+}
+.step1 > .actions > button:first-child, .step2 > .actions > button:first-child {
+    margin: 0 10px 0 0;
+}
+
+.instructions {
+    font-size: large;
+    font-weight: 500;
+    padding-left: 20px;
+}
+
+.detailsArea {
+    width: 95%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.detailsAndDutyFormWrapper {
+    display: flex;
+    padding: 10px 0;
+    background-color: #f2f2f7;
+}
+.astronautDetailsWrapper {
+    display: table-cell;
+    width: 50%;
+    border-right: 3px solid #000032;
+    padding: 10px 25px;
+}
+.astronautDutyFormWrapper {
+    display: table-cell;
+    width: 50%;
+    padding: 10px 25px;
+}
+
+.detailsHeader {
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+}
+.detailsHeader > span:first-child {
+    display: inline-block;
+    font-size: 30pt;
+    font-weight: bold;
+    color: #0032A0;
+}
+
+.newDutyForm {
+    display: flex;
+    justify-content: center;
+}
+.newDutyForm > label {
+    font-size: large;
+}
+.newDutyForm > div > div {
+    display: grid;
+}
+.newDutyForm > div > div > label {
+    margin: 0 0 -9px 13px;
+    background-color: #f2f2f7;
+    z-index: 1;
+    width: max-content;
+}
+.newDutyForm > div > div:nth-child(2) {
+    padding-top: 20px;
+}
+.newDutyForm > div > div:nth-child(3) {
+    padding: 10px 0;
+}
+.newDutyForm > div > div:last-child {
+    padding: 15px 0;
+    display: flex;
+    flex-flow: row;
+    justify-content: center;
+}
+
+.dutyWrapper {
+    text-align: center;
+}
+
+.listHeader {
+    font-size: large;
+}
+
+.dutyList {
+    display: inline-block;
+    width: 100%;
+    padding: 5px 0 10px 20px;
+    text-align: left;
+}
+
+.dutyList:not(:last-child) {
+    border-bottom: double;
+}
+
+.dutyList>span:first-child {
+    display: inline-block;
+    font-size: x-large;
+    font-weight: bold;
+    color: #E4002B;
+}
+
+.dutyList>span:nth-child(2) {
+    display: table-cell;
+    width: 35%;
+    min-width: 150px;
+    font-size: larger;
+    font-weight: 400;
+    padding-right: 50px;
+    color: #0032A0;
+}
+
+.dutyList>span:last-child {
+    display: table-cell;
+    text-align: left;
+    font-size: large;
+    font-weight: normal;
+    color: gray;
+}
+
+.dutyList>span:last-child>span:first-child {
+    font-size: small;
+    padding-right: 4px;
+}
+
+.dutyList>span:last-child>span:nth-child(3) {
+    font-size: small;
+    padding: 0 4px 0 20px;
+}
+
+.dutyList.odd {
+    background-color: lightgrey;
+}

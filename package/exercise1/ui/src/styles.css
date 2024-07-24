@@ -1,0 +1,122 @@
+@media (min-width: 769px) {
+    input[type="text"] {
+        width: 70%;
+    }
+}
+
+@media (min-width: 500px) and (max-width: 768px) {
+    input[type="text"] {
+        width: 70%;
+    }
+}
+
+@media (max-width: 499px) {
+    input[type="text"] {
+        width: 70%;
+    }
+}
+
+body {
+    font-family: Inter, sans serif;
+}
+
+input[type="text"],
+div.dt-container .dt-search input {
+    border: solid 1px navy;
+    padding: 10px;
+    border-radius: 8px;
+    margin-right: 4px;
+    display: inline-block;
+    width: 30%;
+}
+
+div.dt-container .dt-search input {
+    width: auto;
+}
+
+button {
+    padding: 10px;
+    border: solid 1px navy;
+    background: navy;
+    color: white;
+    border-radius: 8px;
+    border-style: outset;
+    cursor: pointer;
+}
+
+button.primary {
+    background-color: #000032;
+    border-color: #000032;
+    margin: 0 10px;
+}
+
+button.primary:hover {
+    background-color: #265aa6;
+    border-color: #265aa6;
+    margin: 0 10px;
+}
+
+button.secondary {
+    background-color: #f2f2f7;
+    border-color: #f2f2f7;
+    color: black;
+    margin: 0 10px;
+}
+
+button.secondary:hover {
+    background-color: white;
+    border-color: white;
+    color: black;
+    margin: 0 10px;
+}
+
+button.grey {
+    background-color: darkgrey;
+    border-color: darkgrey;
+    color: black;
+    margin: 0 10px;
+}
+
+button.grey:hover {
+    background-color: white;
+    border-color: white;
+    color: black;
+    margin: 0 10px;
+}
+
+/* Override the datatables.net styles */
+div.dt-container {
+    width: 95%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.dt-search {
+    display: grid;
+}
+
+.dt-search>label:first-child {
+    margin: 0 0 -9px 13px;
+    background-color: white;
+    z-index: 1;
+    width: min-content;
+}
+
+div.dt-container select.dt-input {
+    border: solid 1px navy;
+    border-radius: 8px;
+    padding: 6px 4px;
+}
+
+table.dataTable>tbody>tr {
+    cursor: pointer;
+}
+
+table.dataTable>tbody>tr.selected>* {
+    box-shadow: inset 0 0 0 9999px rgb(0, 0, 50, 1);
+}
+
+table.dataTable.hover>tbody>tr.selected:hover>*,
+table.dataTable.display>tbody>tr.selected:hover>* {
+    box-shadow: inset 0 0 0 9999px rgb(38, 90, 166, 1) !important;
+}

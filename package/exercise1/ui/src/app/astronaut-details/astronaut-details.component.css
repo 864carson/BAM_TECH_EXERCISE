@@ -1,0 +1,57 @@
+.dutyWrapper {
+    text-align: center;
+}
+
+.listHeader {
+    font-size: large;
+}
+
+.dutyList {
+    display: inline-block;
+    width: 100%;
+    padding: 5px 0 10px 20px;
+    text-align: left;
+}
+
+.dutyList:not(:last-child) {
+    border-bottom: double;
+}
+
+.dutyList>span:first-child {
+    display: inline-block;
+    font-size: x-large;
+    font-weight: bold;
+    color: #E4002B;
+}
+
+.dutyList>span:nth-child(2) {
+    display: table-cell;
+    width: 35%;
+    min-width: 150px;
+    font-size: larger;
+    font-weight: 400;
+    padding-right: 50px;
+    color: #0032A0;
+}
+
+.dutyList>span:last-child {
+    display: table-cell;
+    text-align: left;
+    font-size: large;
+    font-weight: normal;
+    color: gray;
+}
+
+.dutyList>span:last-child>span:first-child {
+    font-size: small;
+    padding-right: 4px;
+}
+
+.dutyList>span:last-child>span:nth-child(3) {
+    font-size: small;
+    padding: 0 4px 0 20px;
+}
+
+.dutyList.odd {
+    background-color: lightgrey;
+}
