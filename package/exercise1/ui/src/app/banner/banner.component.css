@@ -1,21 +1,19 @@
+.bannerWrapper {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: center;
+}
 .leftThird {
-    float: left;
-    width: 33%;
-    text-align: left;
     margin-left: 20px;
 }
 .middleThird {
-    float: left;
-    width: 34%;
-    text-align: center;
-    margin: 15px 0 0 0;
+    margin: 0;
     font-size: 20pt;
 }
 .rightThird {
-    float: right;
-    width: 33%;
-    text-align: right;
-    margin: -25px 20px 0 0;
+    margin: 0 20px 0 0;
     font-size: 16pt;
 }
 
