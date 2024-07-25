@@ -77,6 +77,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy, OnInit {
 
   //#endregion
 
+  //#region [ Datatable Creation/Management ]
   /**
    * Sets up a DataTable with specific options and loads astronaut data into the table.
    */
@@ -137,14 +138,38 @@ export class HomeComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   /**
+   * Checks if a DataTable instance exists, and if so, it refreshes the table by destroying and rerendering it.
+   * Otherwise, the page will be reloaded to accomplish the same end goal of showing the new data in the table.
+   */
+  reloadAstronautTable(): void {
+    // If dtInstance is undefined, just reload the page
+    if (this.dtElement?.dtInstance === undefined) {
+      window.location.reload();
+      return;
+    };
+
+    this.dtElement.dtInstance.then(dtInstance => {
+      // Destroy the table first
+      dtInstance.destroy();
+
+      // Call the dtTrigger to rerender again
+      this.dtTrigger.next(null);
+    });
+  }
+
+  //#endregion
+
+  //#region [ New Astronaut Workflow ]
+
+  /**
    * Adds a new astronaut and proceeds to assign duty based on certain conditions.
    */
-  addNewAstronautThenDuty(): void {
+  addAstronautAndContinue(): void {
     this.astronautService.createAstronaut(this.newAstronaut)
       .subscribe({
         next: (res) => {
           if (this.skipStep2) {
-            this.cancelNewAstronautProcess();
+            this.cancelNewAstronautWorkflow();
           } else {
             this.newAstronautDuty.name = this.newAstronaut.name;
             this.newAstronautDuty.dutyStartDate = this.dateUtils.formatDateToShortDateFormat(new Date());
@@ -159,11 +184,19 @@ export class HomeComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   /**
-   * Sets `skipStep2` to true and then calls `addNewAstronautThenDuty`.
+   * Sets `skipStep2` to true and then calls `addAstronautAndContinue`.
    */
-  addNewAstronaut(): void {
+  addAstronautAndFinish(): void {
     this.skipStep2 = true;
-    this.addNewAstronautThenDuty();
+    this.addAstronautAndContinue();
+  }
+
+  /**
+   * Hides the new astronaut form and reloads the astronaut table.
+   */
+  cancelNewAstronautWorkflow(): void {
+    this.hideNewAstronautForm();
+    this.reloadAstronautTable();
   }
 
   /**
@@ -172,52 +205,16 @@ export class HomeComponent implements AfterViewInit, OnDestroy, OnInit {
    * @returns If an error occurs during the date conversion attempt an exception by displaying an alert
    * with the error message and logging the error to the console. The function will then return.
    */
-  addAstronautDuty_NewAstronautProcess(): void {
-    try {
-      const newDutyDate: string = this.dateUtils.convertShortDateStringToISOString(this.newAstronautDuty.dutyStartDate!);
-      this.newAstronautDuty.dutyStartDate = newDutyDate;
-    }
-    catch (ex) {
-      this.errorService.handleError(ex, this.componentDescriptor);
-      return;
-    }
-
-    this.astronautService.createAstronautDutyRecord(this.newAstronautDuty)
-      .subscribe({
-        next: (res) => {
-          this.cancelNewAstronautProcess();
-        },
-        error: (e) => {
-          this.errorService.handleError(e, this.componentDescriptor);
-        }
+  addAstronautDutyDuringNewAstronautWorkflow(): void {
+    this.addDutyRecord(
+      (res: any) => {
+        this.cancelNewAstronautWorkflow();
       });
   }
 
-  /**
-   * Hides the new astronaut form and reloads the astronaut table.
-   */
-  cancelNewAstronautProcess(): void {
-    this.hideNewAstronautForm();
-    this.reloadAstronautTable();
-  }
+  //#endregion
 
-  /**
-   * Checks if a DataTable instance exists, and if so, it refreshes the table by destroying and rerendering it.
-   * Otherwise, the page will be reloaded to accomplish the same end goal of showing the new data in the table.
-   */
-  reloadAstronautTable(): void {
-    if (this.dtElement?.dtInstance === undefined) {
-      window.location.reload();
-      return;
-    };
-
-    this.dtElement.dtInstance.then(dtInstance => {
-      // Destroy the table first
-      dtInstance.destroy();
-      // Call the dtTrigger to rerender again
-      this.dtTrigger.next(null);
-    });
-  }
+  //#region [ Duty History and Creation ]
 
   /**
    * Retrieves astronaut duty details by name and sorts them in descending order based on ID.
@@ -249,30 +246,20 @@ export class HomeComponent implements AfterViewInit, OnDestroy, OnInit {
    * with the error message and logging the error to the console. The function will then return.
    */
   addAstronautDuty(): void {
-    try {
-      const newDutyDate: string = this.dateUtils.convertShortDateStringToISOString(this.newAstronautDuty.dutyStartDate!);
-      this.newAstronautDuty.dutyStartDate = newDutyDate;
-    }
-    catch (ex) {
-      this.errorService.handleError(ex, this.componentDescriptor);
-      return;
-    }
+    this.addDutyRecord(
+      (res: any) => {
+        const astronautName: string = this.newAstronautDuty.name!;
+        this.resetAstronautDutyForm();
+        this.selectedAstronaut = undefined;
 
-    this.astronautService.createAstronautDutyRecord(this.newAstronautDuty)
-      .subscribe({
-        next: (res) => {
-          const astronautName: string = this.newAstronautDuty.name!;
-          this.resetAstronautDutyForm();
-          this.selectedAstronaut = undefined;
-
-          this.reloadAstronautTable();
-          this.loadDutyDetails(astronautName);
-        },
-        error: (e) => {
-          this.errorService.handleError(e, this.componentDescriptor);
-        }
+        this.reloadAstronautTable();
+        this.loadDutyDetails(astronautName);
       });
   }
+
+  //#endregion
+
+  //#region [ Form State Management ]
 
   /**
    * Displays a form for assigning a new duty to a selected astronaut.
@@ -302,6 +289,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy, OnInit {
   hideNewAstronautDutyForm(): void {
     this.newAstronautDutyFormVisible = false;
   }
+
   /**
    * Resets the `newAstronautDuty` object and sets the `dutyStartDate` to the current date in MM/dd/yyyy format.
    */
@@ -336,4 +324,38 @@ export class HomeComponent implements AfterViewInit, OnDestroy, OnInit {
     this.newAstronaut = new Astronaut();
     this.newAstronautDuty = new AstronautDutyDto();
   }
+
+  //#endregion
+
+  //#region [ Helpers ]
+
+  private addDutyRecord(successCallback: any, errorCallback?: any): void {
+    try {
+      // Convert the duty start date from short date format to ISO format and handle exceptions
+      // caused by invalid date values.
+      const newDutyDate: string = this.dateUtils.convertShortDateStringToISOString(this.newAstronautDuty.dutyStartDate!);
+      this.newAstronautDuty.dutyStartDate = newDutyDate;
+    }
+    catch (ex) {
+      this.errorService.handleError(ex, this.componentDescriptor);
+      return;
+    }
+
+    this.astronautService.createAstronautDutyRecord(this.newAstronautDuty)
+      .subscribe({
+        next: (res) => {
+          if (successCallback) {
+            successCallback(res);
+          }
+        },
+        error: (e) => {
+          this.errorService.handleError(e, this.componentDescriptor);
+          if (errorCallback) {
+            errorCallback(e);
+          }
+        }
+      });
+  }
+
+  //#endregion
 }
